@@ -4,8 +4,8 @@
  * Supports cache invalidation, TTL, and cache warming
  */
 
-const redis = require('redis');
 const crypto = require('crypto');
+const optionalRequire = require('./optionalRequire');
 
 class CacheEngine {
   constructor(config = {}) {
@@ -38,6 +38,7 @@ class CacheEngine {
 
   async init() {
     try {
+      const redis = optionalRequire('redis', 'Redis cache');
       this.client = redis.createClient({
         url: this.config.redisUrl,
         socket: {
@@ -56,6 +57,7 @@ class CacheEngine {
       console.log('[CacheEngine] Connected to Redis');
     } catch (error) {
       this.fallbackToMemory(error);
+      this.initialized = true;
     }
   }
 
