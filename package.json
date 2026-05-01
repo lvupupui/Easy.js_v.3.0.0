@@ -1,6 +1,6 @@
 {
   "name": "easybackend.js",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "A developer-friendly backend DSL and framework for Node.js and Express.",
   "main": "index.js",
   "icon": "public/easyjs-logo-mark.svg",
@@ -56,7 +56,8 @@
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "verify-dependencies.js"
   ],
   "bin": {
     "easyjs": "cli/index.js",
@@ -112,6 +113,7 @@
   "scripts": {
     "start": "node verify-dependencies.js && node index.js examples/quickstart.easy",
     "dev": "node verify-dependencies.js && nodemon index.js examples/quickstart.easy",
+    "doctor": "node verify-dependencies.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --detectOpenHandles",
@@ -138,8 +140,7 @@
     "cli": "node cli/index.js",
     "build-full-stack": "node fullstack/FullStackBuilder.js",
     "generate-frontend": "node frontend/ReactGenerator.js",
-    "verify": "node verify-dependencies.js",
-    "postinstall": "node verify-dependencies.js"
+    "verify": "node verify-dependencies.js"
   },
   "keywords": [
     "full-stack",

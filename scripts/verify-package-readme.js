@@ -40,4 +40,12 @@ if (!Array.isArray(pkg.files) || !pkg.files.includes('README.md')) {
   fail('package.json files must include README.md.');
 }
 
+if (pkg.scripts && pkg.scripts.postinstall) {
+  fail('package.json must not run postinstall in consumer projects.');
+}
+
+if (!Array.isArray(pkg.files) || !pkg.files.includes('verify-dependencies.js')) {
+  fail('package.json files must include verify-dependencies.js because package scripts reference it.');
+}
+
 console.log('Package README check passed.');

@@ -472,7 +472,7 @@ VALIDATE posts {
 `,
 
     healthTest: () => `const request = require('supertest');
-const AppFactory = require('easy.js').AppFactory;
+const AppFactory = require('easybackend.js').AppFactory;
 
 describe('health', () => {
   it('returns health status', async () => {
@@ -641,7 +641,7 @@ jobs:
         'seed:run': 'knex seed:run'
       },
       dependencies: {
-        'easy.js': '^3.0.0'
+        'easybackend.js': '^3.0.4'
       },
       devDependencies: {
         jest: '^29.7.0',
