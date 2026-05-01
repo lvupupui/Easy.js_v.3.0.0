@@ -1240,7 +1240,30 @@ function selectRoute(method, endpoint, button) {
   selectedRoute = { method, path: endpoint };
   document.querySelectorAll('#route-list button').forEach(item => item.classList.remove('active'));
   button.classList.add('active');
+  if (!['GET', 'HEAD', 'DELETE'].includes(method)) {
+    bodyInput.value = JSON.stringify(sampleBodyFor(endpoint), null, 2);
+  }
   output.textContent = \`Selected \${method} \${endpoint}\`;
+}
+
+function sampleBodyFor(endpoint) {
+  if (endpoint.includes('/users')) {
+    return {
+      name: 'Ada Lovelace',
+      email: 'ada@example.com',
+      password: 'password123'
+    };
+  }
+  if (endpoint.includes('/posts')) {
+    return {
+      title: 'Hello easy.js',
+      content: 'This post was created from the starter UI.'
+    };
+  }
+  return {
+    name: 'Ada Lovelace',
+    email: 'ada@example.com'
+  };
 }
 
 async function callApi(route = selectedRoute) {

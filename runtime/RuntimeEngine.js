@@ -30,6 +30,7 @@ class RuntimeEngine {
     this.security = null;
     this.monitoring = null;
     this.enterpriseAuth = null;
+    this.server = null;
   }
 
   async initialize(config) {
@@ -86,7 +87,12 @@ class RuntimeEngine {
         enableAutoScaling: true,
         enableMonitoring: true
       });
-      await this.db.initialize(config.databases, config.models);
+      try {
+        await this.db.initialize(config.databases, config.models);
+      } catch (error) {
+        this.logDatabaseStartupFailure(config.databases[0], error);
+        throw error;
+      }
     }
 
     // Setup authentication
@@ -306,18 +312,103 @@ class RuntimeEngine {
   async startServer() {
     const { port, host } = this.config.server;
 
-    this.app.listen(port, host, () => {
-      Logger.success(`\n✓ Server started on http://${host}:${port}`);
-      Logger.info(`\nAvailable routes:`);
-      
-      if (this.config.routes.length > 0) {
-        this.config.routes.forEach(route => {
-          Logger.info(`  ${route.method.toUpperCase()} ${route.path}`);
-        });
-      }
-
-      Logger.info('\nPress Ctrl+C to stop the server\n');
+    return new Promise((resolve, reject) => {
+      this.server = this.app.listen(port, host, async () => {
+        await this.logStartupSummary(port, host);
+        resolve(this.server);
+      });
+      this.server.on('error', reject);
     });
+  }
+
+  async logStartupSummary(port, host) {
+    const localUrl = `http://${this.displayHost(host)}:${port}`;
+    Logger.success('\nServer started');
+    Logger.info(`Local: ${localUrl}`);
+    if (host && host !== this.displayHost(host)) {
+      Logger.info(`Bound address: http://${host}:${port}`);
+    }
+
+    await this.logDatabaseStatus();
+
+    Logger.info(`\nAvailable routes:`);
+    if (this.config.routes.length > 0) {
+      this.config.routes.forEach(route => {
+        Logger.info(`  ${route.method.toUpperCase()} ${route.path}`);
+      });
+    } else {
+      Logger.info('  No model routes configured');
+    }
+
+    Logger.info('\nPress Ctrl+C to stop the server\n');
+  }
+
+  async logDatabaseStatus() {
+    const databases = this.config.databases || [];
+    if (!databases.length) {
+      Logger.info('Database: none configured');
+      return;
+    }
+
+    const health = this.db ? await this.db.healthCheck() : {};
+    for (const dbConfig of databases) {
+      const type = dbConfig.type.toLowerCase();
+      const label = this.databaseLabel(type);
+      const status = health[type]?.status || 'not connected';
+      const connection = this.redactConnection(dbConfig.connection);
+      Logger.info(`Database: ${label} ${status} (${connection})`);
+    }
+  }
+
+  logDatabaseStartupFailure(dbConfig, error) {
+    if (!dbConfig) return;
+    const type = dbConfig.type.toLowerCase();
+    const label = this.databaseLabel(type);
+    Logger.error(`Database: ${label} not connected`);
+    Logger.info(`Connection: ${this.redactConnection(dbConfig.connection)}`);
+    Logger.info(`Reason: ${error.message}`);
+    if (['mongodb', 'mongo'].includes(type)) {
+      Logger.info('Start local MongoDB: docker run -d --name easyjs-mongo -p 27017:27017 mongo:7');
+    }
+  }
+
+  databaseLabel(type) {
+    const labels = {
+      mongodb: 'MongoDB',
+      mongo: 'MongoDB',
+      postgres: 'PostgreSQL',
+      postgresql: 'PostgreSQL',
+      mysql: 'MySQL',
+      sqlite: 'SQLite',
+      redis: 'Redis',
+      supabase: 'Supabase',
+      firebase: 'Firebase',
+      dynamodb: 'DynamoDB',
+      elasticsearch: 'Elasticsearch',
+      cassandra: 'Cassandra',
+      neo4j: 'Neo4j'
+    };
+    return labels[type] || type.toUpperCase();
+  }
+
+  displayHost(host) {
+    if (!host || host === '0.0.0.0' || host === '::') return 'localhost';
+    return host;
+  }
+
+  redactConnection(connection) {
+    if (!connection) return 'no connection string';
+    if (typeof connection !== 'string') {
+      const uri = connection.uri || connection.url || connection.connectionString;
+      return uri ? this.redactConnection(uri) : 'configured';
+    }
+    try {
+      const url = new URL(connection);
+      if (url.password) url.password = '*****';
+      return url.toString();
+    } catch {
+      return connection;
+    }
   }
 }
 

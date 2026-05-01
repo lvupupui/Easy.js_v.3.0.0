@@ -70,6 +70,7 @@ describe('CLI defaults', () => {
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'index.html'), 'utf8')).toContain('route-list');
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'api.js'), 'utf8')).toContain('window.EasyAPI');
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'app.js'), 'utf8')).toContain('copyCurl');
+      expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'app.js'), 'utf8')).toContain('password123');
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'README.md'), 'utf8')).toContain('template folder');
       expect(JSON.parse(fs.readFileSync(path.join(temp, 'ui-api', 'package.json'), 'utf8')).dependencies['easybackend.js']).toBe(`^${rootPackage.version}`);
     } finally {
