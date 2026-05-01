@@ -1,7 +1,7 @@
 {
-  "name": "easy.js",
+  "name": "easybackend.js",
   "version": "3.0.0",
-  "description": "The world's easiest secure backend language for Node.js and Express.",
+  "description": "A developer-friendly backend DSL and framework for Node.js and Express.",
   "main": "index.js",
   "icon": "public/easyjs-logo-mark.svg",
   "repository": {

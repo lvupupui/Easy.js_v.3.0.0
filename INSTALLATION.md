@@ -42,12 +42,12 @@ npm start
 Install in specific project:
 
 ```bash
-npm install easy.js
+npm install easybackend.js
 ```
 
 Use via npx:
 ```bash
-npx easyjs create my-api
+npx easybackend.js create my-api
 ```
 
 ### Method 3: From Source

@@ -5,7 +5,7 @@ easy.js is designed around one promise: describe the backend you want, and let t
 ## Create a Backend
 
 ```bash
-npx easyjs create my-api
+npx easybackend.js create my-api
 cd my-api
 npm install
 npm run doctor

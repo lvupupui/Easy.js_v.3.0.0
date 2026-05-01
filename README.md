@@ -1,15 +1,19 @@
-# easy.js - Production-Ready Backend Framework
+# easy.js - Backend Framework for Node.js/Express
 
-A developer-friendly backend framework that transforms simple DSL syntax into fully functional, production-ready Node.js/Express applications with built-in security, validation, and database support.
+A developer-friendly backend framework that transforms simple DSL syntax into functional Node.js/Express applications with built-in security, validation, and database support.
 
 Author: Avi Ranjan Prasad
 
-![easy.js logo](public/easyjs-logo.svg)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Avi-Ranjan-Prasad/easy.js/main/public/easyjs-logo.svg" alt="easy.js logo" width="220">
+</p>
+
+> Validation note: core adapters are covered by local contract tests. Paid/cloud/provider adapters such as Supabase, Firebase, DynamoDB, Elasticsearch/OpenSearch, Cassandra, and Neo4j require `LIVE_ADAPTERS=true` plus real service credentials or local services for live validation. See [Live Adapter Validation](docs/LIVE_ADAPTERS.md).
 
 ## Start in One Minute
 
 ```bash
-npx easyjs create my-api
+npx easybackend.js create my-api
 cd my-api
 npm install
 npm run doctor
@@ -40,6 +44,7 @@ New user guides:
 - [easy.js Language](docs/EASY_LANGUAGE.md)
 - [AI, Cloud, and DevOps Support](docs/AI_CLOUD_DEVOPS.md)
 - [Database Support](docs/DATABASES.md)
+- [Live Adapter Validation](docs/LIVE_ADAPTERS.md)
 - [Security Defaults](docs/SECURITY_DEFAULTS.md)
 - [IDE Support](docs/IDE.md)
 - [Language Specification](docs/LANGUAGE_SPEC.md)
@@ -48,18 +53,19 @@ New user guides:
 - [Backward Compatibility](docs/BACKWARD_COMPATIBILITY.md)
 - [Generated Code Security](docs/GENERATED_CODE_SECURITY.md)
 
-## 🎯 What is easy.js?
+## What is easy.js?
 
 easy.js simplifies backend development by letting you write backend applications in a clean, human-readable DSL instead of complex Express.js code. Write simple declarations, get a fully functional REST API with:
 
 - Express.js server setup
-- MongoDB & MySQL support
+- MongoDB, MySQL, PostgreSQL, SQLite, Redis, and additional provider adapter support
 - JWT authentication
 - Input validation
 - Rate limiting & security headers
 - CORS configuration
 - Error handling
 - Database migrations
+- Live provider validation harness for credential-backed services
 
 ## Modern AI, Cloud, and DevOps
 
@@ -70,18 +76,18 @@ easy.js simplifies backend development by letting you write backend applications
 - Google Cloud Storage, Azure Blob Storage, and S3 storage adapters
 - Docker, Docker Compose, Kubernetes, Helm, Terraform for AWS ECS/Fargate, GitHub Actions CI, Sentry, OpenTelemetry, and Prometheus
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Installation
 
 ```bash
-npm install easy.js
+npm install easybackend.js
 ```
 
 ### Create a Project
 
 ```bash
-npx easyjs create my-api
+npx easybackend.js create my-api
 cd my-api
 npm install
 npm start
@@ -126,7 +132,7 @@ easyjs start app.easy
 
 Your API is now running on `http://localhost:3000`
 
-## 📖 Language Syntax
+## Language Syntax
 
 ### Server Configuration
 
@@ -253,7 +259,7 @@ USE AUTH
 
 Built-in middleware: `LOGGER`, `AUTH`, `CORS`, `COMPRESSION`
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 easyjs/
@@ -282,7 +288,7 @@ easyjs/
 └── README.md
 ```
 
-## 🔐 Security Features
+## Security Features
 
 ### Built-in Protections
 
@@ -307,7 +313,7 @@ MYSQL_URL=mysql://root:password@localhost:3306/myapp
 DEBUG=false
 ```
 
-## 🗄️ Database Support
+## Database Support
 
 ### MongoDB
 
@@ -333,7 +339,7 @@ Features:
 - Prepared statements
 - Transaction support ready
 
-## 🔑 Authentication
+## Authentication
 
 ### Setup
 
@@ -357,7 +363,7 @@ Users model receives special handling:
 - Token generation
 - Session management
 
-## ✅ Validation
+## Validation
 
 Comprehensive input validation with clear error messages:
 
@@ -382,7 +388,7 @@ Error responses:
 }
 ```
 
-## 📡 API Response Format
+## API Response Format
 
 ### Success Response
 
@@ -403,12 +409,12 @@ Error responses:
 }
 ```
 
-## 🛠️ CLI Commands
+## CLI Commands
 
 ### Create New Project
 
 ```bash
-easyjs create <project-name>
+npx easybackend.js create <project-name>
 ```
 
 ### Start Production Server
@@ -441,7 +447,7 @@ easyjs --version
 easyjs --help
 ```
 
-## 📚 Complete Example
+## Complete Example
 
 ```
 START SERVER 4000
@@ -488,7 +494,7 @@ PROTECT /posts
 PROTECT /comments
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Docker
 
@@ -518,7 +524,7 @@ MONGODB_URL=mongodb+srv://user:pass@cluster.mongodb.net/proddb
 NODE_ENV=production
 ```
 
-## 🧪 Testing Your API
+## Testing Your API
 
 ### Get All Users
 
@@ -556,7 +562,7 @@ curl -X DELETE http://localhost:3000/users/123 \
   -H "Authorization: Bearer <token>"
 ```
 
-## 📝 Best Practices
+## Best Practices
 
 1. **Environment Variables**: Always use `.env` for sensitive data
 2. **Validation**: Define comprehensive validation rules
@@ -565,7 +571,7 @@ curl -X DELETE http://localhost:3000/users/123 \
 5. **Database**: Use connection strings with authentication
 6. **Rate Limiting**: Protect public endpoints from abuse
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Database Connection Failed
 
@@ -586,15 +592,15 @@ npm install
 npm start
 ```
 
-## 📄 License
+## License
 
 MIT License - Feel free to use in personal and commercial projects
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Submit issues and pull requests on GitHub.
 
-## 📞 Support
+## Support
 
 For issues and questions:
 - Open an issue on GitHub
@@ -603,4 +609,4 @@ For issues and questions:
 
 ---
 
-**easy.js** - Building backends has never been easier. ✨
+**easy.js** - Building backends has never been easier.
