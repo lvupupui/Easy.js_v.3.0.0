@@ -641,7 +641,7 @@ jobs:
         'seed:run': 'knex seed:run'
       },
       dependencies: {
-        'easybackend.js': '^3.0.8',
+        'easybackend.js': '^3.0.9',
         mongoose: '^7.5.0'
       },
       devDependencies: {

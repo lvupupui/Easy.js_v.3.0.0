@@ -33,7 +33,7 @@ function buildLandingPayload(options = {}) {
 }
 
 function wantsJson(req) {
-  return req.query.format === 'json' || req.get('accept') === 'application/json';
+  return req.query.format === 'json';
 }
 
 function renderRoute(route) {

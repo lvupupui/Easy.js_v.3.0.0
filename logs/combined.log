@@ -4490,3 +4490,6 @@
 {"error":"close failed","level":"error","message":"Failed to setup queue processor: failing","service":"easyjs-app","timestamp":"2026-05-01 18:15:02"}
 {"level":"info","message":"[QUEUE] Queue closed: emails","service":"easyjs-app","timestamp":"2026-05-01 18:15:02"}
 {"error":"close failed","level":"error","message":"Failed to close queues","service":"easyjs-app","timestamp":"2026-05-01 18:15:02"}
+{"error":"database down","level":"warn","message":"Database health check failed","service":"easyjs-app","timestamp":"2026-05-01 19:08:58"}
+{"error":"database down","level":"warn","message":"Database health check failed","service":"easyjs-app","timestamp":"2026-05-01 19:09:04"}
+{"error":"database down","level":"warn","message":"Database health check failed","service":"easyjs-app","timestamp":"2026-05-01 19:09:05"}

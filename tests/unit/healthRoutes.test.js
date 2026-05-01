@@ -22,10 +22,9 @@ describe('health routes', () => {
       });
   });
 
-  it('returns a useful landing payload at the root path for API clients', async () => {
+  it('returns a useful landing payload at the root path when requested', async () => {
     await request(createApp())
-      .get('/')
-      .set('Accept', 'application/json')
+      .get('/?format=json')
       .expect(200)
       .expect(res => {
         expect(res.body.success).toBe(true);
