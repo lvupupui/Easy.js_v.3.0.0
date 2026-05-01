@@ -152,6 +152,7 @@ class CLI {
       'tests/integration/health.test.js': this.templates.healthTest(),
       'template/index.html': this.templates.templateIndex(projectName, uiPreset),
       'template/styles.css': this.templates.templateStyles(uiPreset),
+      'template/api.js': this.templates.templateApi(),
       'template/app.js': this.templates.templateApp(),
       'migrations/001_create_users_table.js': this.templates.userMigration(),
       'seeds/001_admin_user.js': this.templates.adminSeed(),
@@ -181,7 +182,7 @@ class CLI {
 
     if (!feature) {
       Logger.error('Feature name is required');
-      Logger.info('Usage: easyjs add <model|route|crud|auth|database|job> <name>');
+      Logger.info('Usage: easyjs add <model|route|crud|auth|database|ui|page|job> <name>');
       process.exit(1);
     }
 
@@ -229,6 +230,12 @@ class CLI {
     if (feature === 'ui') {
       if (!name) return this.missingName('ui');
       this.addUiPreset(name);
+      return;
+    }
+
+    if (feature === 'page') {
+      if (!name) return this.missingName('page');
+      this.addTemplatePage(name);
       return;
     }
 
@@ -296,6 +303,7 @@ class CLI {
     fs.mkdirSync(path.join(process.cwd(), 'template'), { recursive: true });
     fs.writeFileSync(path.join(process.cwd(), 'template', 'index.html'), this.templates.templateIndex(this.projectNameFromPackage(), preset));
     fs.writeFileSync(path.join(process.cwd(), 'template', 'styles.css'), this.templates.templateStyles(preset));
+    fs.writeFileSync(path.join(process.cwd(), 'template', 'api.js'), this.templates.templateApi());
     fs.writeFileSync(path.join(process.cwd(), 'template', 'app.js'), this.templates.templateApp());
     if (preset === 'tailwind') {
       fs.writeFileSync(path.join(process.cwd(), 'template', 'input.css'), this.templates.tailwindInput());
@@ -310,6 +318,59 @@ class CLI {
       Logger.info('Run npm install');
       if (preset === 'tailwind') Logger.info('Then run npm run ui:build');
     }
+  }
+
+  addTemplatePage(name) {
+    const pageName = this.normalizePageName(name);
+    const title = this.toTitle(pageName);
+    const templateDir = path.join(process.cwd(), 'template');
+    const pagesDir = path.join(templateDir, 'pages');
+    fs.mkdirSync(pagesDir, { recursive: true });
+    const pagePath = path.join(pagesDir, `${pageName}.html`);
+
+    if (fs.existsSync(pagePath)) {
+      Logger.error(`Page already exists: template/pages/${pageName}.html`);
+      process.exit(1);
+    }
+
+    fs.writeFileSync(pagePath, this.templates.templatePage(title));
+    this.ensureTemplateApi();
+    this.ensurePageLink(pageName, title);
+    Logger.success(`Page added: template/pages/${pageName}.html`);
+  }
+
+  ensureTemplateApi() {
+    const apiPath = path.join(process.cwd(), 'template', 'api.js');
+    if (!fs.existsSync(apiPath)) {
+      fs.mkdirSync(path.dirname(apiPath), { recursive: true });
+      fs.writeFileSync(apiPath, this.templates.templateApi());
+    }
+  }
+
+  ensurePageLink(pageName, title) {
+    const indexPath = path.join(process.cwd(), 'template', 'index.html');
+    if (!fs.existsSync(indexPath)) return;
+    const href = `/template/pages/${pageName}.html`;
+    const source = fs.readFileSync(indexPath, 'utf8');
+    if (source.includes(href)) return;
+    const link = `        <a href="${href}">${title}</a>\n`;
+    const nextSource = source.includes('<!-- easy.js pages -->')
+      ? source.replace('<!-- easy.js pages -->', `${link}        <!-- easy.js pages -->`)
+      : source.replace('</header>', `      <nav class="pages">\n${link}      </nav>\n    </header>`);
+    fs.writeFileSync(indexPath, nextSource);
+  }
+
+  normalizePageName(name) {
+    const normalized = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!normalized) {
+      Logger.error('Page name must include a letter or number');
+      process.exit(1);
+    }
+    return normalized;
+  }
+
+  toTitle(name) {
+    return String(name).split('-').filter(Boolean).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   }
 
   doctor() {
@@ -590,6 +651,7 @@ Commands:
   add auth jwt         Add JWT auth declarations
   add database <name>  Configure database and package dependency
   add ui <preset>      Add UI preset: plain, bootstrap, tailwind
+  add page <name>      Add an HTML page in template/pages
   add job <name>       Add a scheduled job block
   build                Build for production
   migration <command>  Migration commands: latest, rollback, make <name>
@@ -600,6 +662,7 @@ Examples:
   easyjs add model Post
   easyjs add database postgres
   easyjs add ui bootstrap
+  easyjs add page dashboard
   easyjs add route posts
   easyjs doctor
 `);
@@ -820,6 +883,9 @@ Open http://localhost:3000/ for the starter UI.
         <h1>${projectName}</h1>
         <p class="lede">Edit files in the <code>template</code> folder to design this UI. The buttons below call your backend routes directly.</p>
       </div>
+      <nav class="pages">
+        <!-- easy.js pages -->
+      </nav>
     </header>
 
     <section class="panel ${bootstrap ? 'card card-body shadow-sm' : ''}">
@@ -842,6 +908,7 @@ Open http://localhost:3000/ for the starter UI.
       <pre id="output">Click an endpoint to see the backend response.</pre>
     </section>
   </main>
+  <script src="/template/api.js"></script>
   <script src="/template/app.js"></script>
   ${bootstrap ? '<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>' : ''}
 </body>
@@ -908,6 +975,23 @@ h1 {
   font-size: clamp(2.4rem, 7vw, 5rem);
   line-height: .95;
   letter-spacing: 0;
+}
+
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.pages a {
+  color: var(--brand);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pages a:hover {
+  text-decoration: underline;
 }
 
 .lede {
@@ -1021,6 +1105,95 @@ pre {
 };
 `,
 
+    templateApi: () => `window.EasyAPI = {
+  async request(path, options = {}) {
+    const response = await fetch(path, {
+      headers: {
+        Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {})
+      },
+      ...options,
+      body: options.body && typeof options.body !== 'string'
+        ? JSON.stringify(options.body)
+        : options.body
+    });
+
+    const text = await response.text();
+    const data = text ? parseResponse(text) : null;
+    if (!response.ok) {
+      const message = data?.error || data?.message || response.statusText;
+      throw new Error(message);
+    }
+    return data;
+  },
+  get(path, options = {}) {
+    return this.request(path, { ...options, method: 'GET' });
+  },
+  post(path, body, options = {}) {
+    return this.request(path, { ...options, method: 'POST', body });
+  },
+  put(path, body, options = {}) {
+    return this.request(path, { ...options, method: 'PUT', body });
+  },
+  patch(path, body, options = {}) {
+    return this.request(path, { ...options, method: 'PATCH', body });
+  },
+  delete(path, options = {}) {
+    return this.request(path, { ...options, method: 'DELETE' });
+  }
+};
+
+function parseResponse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+`,
+
+    templatePage: (title) => `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title} - easy.js</title>
+  <link rel="stylesheet" href="/template/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="mark" aria-hidden="true">E</div>
+      <div>
+        <p class="eyebrow">easy.js page</p>
+        <h1>${title}</h1>
+        <p class="lede">Build this page with plain HTML, CSS, and the EasyAPI helper.</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>${title}</h2>
+        <a href="/">Home</a>
+      </div>
+      <pre id="page-output">Loading health status...</pre>
+    </section>
+  </main>
+  <script src="/template/api.js"></script>
+  <script>
+    EasyAPI.get('/health')
+      .then(data => {
+        document.querySelector('#page-output').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.querySelector('#page-output').textContent = error.message;
+      });
+  </script>
+</body>
+</html>
+`,
+
     templateApp: () => `const output = document.querySelector('#output');
 const routeList = document.querySelector('#route-list');
 const bodyInput = document.querySelector('#request-body');
@@ -1033,8 +1206,7 @@ let selectedRoute = { method: 'GET', path: '/health' };
 
 async function loadRoutes() {
   try {
-    const response = await fetch('/?format=json', { headers: { Accept: 'application/json' } });
-    const data = await response.json();
+    const data = await EasyAPI.get('/?format=json');
     const routes = [{ method: 'GET', path: '/health' }, ...(data.routes || [])];
     routeList.innerHTML = '';
     routes.forEach(route => {
@@ -1062,19 +1234,13 @@ function selectRoute(method, endpoint, button) {
 
 async function callApi(route = selectedRoute) {
   output.textContent = \`Loading \${route.method} \${route.path}...\`;
-  const options = { method: route.method, headers: { Accept: 'application/json' } };
+  const options = { method: route.method };
   if (!['GET', 'HEAD'].includes(route.method)) {
-    options.headers['Content-Type'] = 'application/json';
     options.body = bodyInput.value;
   }
   try {
-    const response = await fetch(route.path, options);
-    const text = await response.text();
-    try {
-      output.textContent = JSON.stringify(JSON.parse(text), null, 2);
-    } catch {
-      output.textContent = text;
-    }
+    const data = await EasyAPI.request(route.path, options);
+    output.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
   } catch (error) {
     output.textContent = error.message;
   }

@@ -1,10 +1,11 @@
 const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
+const isTest = process.env.NODE_ENV === 'test';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
+if (!isTest && !fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
@@ -39,7 +40,7 @@ const format = winston.format.combine(
   })
 );
 
-const transports = [
+const transports = isTest ? [] : [
   // Error logs
   new winston.transports.File({
     filename: path.join(logsDir, 'error.log'),
@@ -66,7 +67,7 @@ const transports = [
 ];
 
 // Add console transport in development
-if (process.env.NODE_ENV !== 'production') {
+if (!isTest && process.env.NODE_ENV !== 'production') {
   transports.push(
     new winston.transports.Console({
       format: winston.format.combine(
@@ -84,7 +85,8 @@ const logger = winston.createLogger({
   levels,
   format,
   transports,
-  defaultMeta: { service: 'easyjs-app' }
+  defaultMeta: { service: 'easyjs-app' },
+  silent: isTest
 });
 
 // Export custom log methods

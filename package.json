@@ -1,6 +1,6 @@
 {
   "name": "easybackend.js",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "A developer-friendly backend DSL and framework for Node.js and Express.",
   "main": "index.js",
   "icon": "public/easyjs-logo-mark.svg",
@@ -217,42 +217,114 @@
     "vscode-languageserver-textdocument": "^1.0.11"
   },
   "peerDependenciesMeta": {
-    "@anthropic-ai/sdk": { "optional": true },
-    "@aws-sdk/client-dynamodb": { "optional": true },
-    "@aws-sdk/client-s3": { "optional": true },
-    "@aws-sdk/lib-dynamodb": { "optional": true },
-    "@aws-sdk/lib-storage": { "optional": true },
-    "@aws-sdk/s3-request-presigner": { "optional": true },
-    "@azure/storage-blob": { "optional": true },
-    "@elastic/elasticsearch": { "optional": true },
-    "@google-cloud/storage": { "optional": true },
-    "@google/genai": { "optional": true },
-    "@libsql/client": { "optional": true },
-    "@opentelemetry/api": { "optional": true },
-    "@sendgrid/mail": { "optional": true },
-    "@sentry/node": { "optional": true },
-    "@supabase/supabase-js": { "optional": true },
-    "@tensorflow/tfjs": { "optional": true },
-    "cassandra-driver": { "optional": true },
-    "firebase-admin": { "optional": true },
-    "mailgun.js": { "optional": true },
-    "mongoose": { "optional": true },
-    "mssql": { "optional": true },
-    "mysql2": { "optional": true },
-    "neo4j-driver": { "optional": true },
-    "nodemailer": { "optional": true },
-    "openai": { "optional": true },
-    "pg": { "optional": true },
-    "redis": { "optional": true },
-    "sql.js": { "optional": true },
-    "stripe": { "optional": true },
-    "bootstrap": { "optional": true },
-    "tailwindcss": { "optional": true },
-    "postcss": { "optional": true },
-    "autoprefixer": { "optional": true },
-    "vscode-languageclient": { "optional": true },
-    "vscode-languageserver": { "optional": true },
-    "vscode-languageserver-textdocument": { "optional": true }
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@aws-sdk/client-dynamodb": {
+      "optional": true
+    },
+    "@aws-sdk/client-s3": {
+      "optional": true
+    },
+    "@aws-sdk/lib-dynamodb": {
+      "optional": true
+    },
+    "@aws-sdk/lib-storage": {
+      "optional": true
+    },
+    "@aws-sdk/s3-request-presigner": {
+      "optional": true
+    },
+    "@azure/storage-blob": {
+      "optional": true
+    },
+    "@elastic/elasticsearch": {
+      "optional": true
+    },
+    "@google-cloud/storage": {
+      "optional": true
+    },
+    "@google/genai": {
+      "optional": true
+    },
+    "@libsql/client": {
+      "optional": true
+    },
+    "@opentelemetry/api": {
+      "optional": true
+    },
+    "@sendgrid/mail": {
+      "optional": true
+    },
+    "@sentry/node": {
+      "optional": true
+    },
+    "@supabase/supabase-js": {
+      "optional": true
+    },
+    "@tensorflow/tfjs": {
+      "optional": true
+    },
+    "cassandra-driver": {
+      "optional": true
+    },
+    "firebase-admin": {
+      "optional": true
+    },
+    "mailgun.js": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    },
+    "mssql": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "neo4j-driver": {
+      "optional": true
+    },
+    "nodemailer": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    },
+    "redis": {
+      "optional": true
+    },
+    "sql.js": {
+      "optional": true
+    },
+    "stripe": {
+      "optional": true
+    },
+    "bootstrap": {
+      "optional": true
+    },
+    "tailwindcss": {
+      "optional": true
+    },
+    "postcss": {
+      "optional": true
+    },
+    "autoprefixer": {
+      "optional": true
+    },
+    "vscode-languageclient": {
+      "optional": true
+    },
+    "vscode-languageserver": {
+      "optional": true
+    },
+    "vscode-languageserver-textdocument": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.23.2",

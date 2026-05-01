@@ -20,6 +20,7 @@ module.exports = {
   },
   setupFiles: ['<rootDir>/tests/setup.js'],
   testTimeout: 30000,
+  openHandlesTimeout: 5000,
   verbose: true,
   collectCoverage: false,
   coverageReporters: ['text', 'lcov', 'html'],

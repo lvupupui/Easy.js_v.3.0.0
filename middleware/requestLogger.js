@@ -2,10 +2,11 @@ const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 const loggerWinston = require('../core/loggerWinston');
+const isTest = process.env.NODE_ENV === 'test';
 
 // Ensure logs directory
 const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
+if (!isTest && !fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
@@ -18,15 +19,15 @@ morgan.token('response-time-ms', (req, res) => {
 });
 
 // Create write streams
-const accessLogStream = fs.createWriteStream(
-  path.join(logsDir, 'access.log'),
-  { flags: 'a' }
-);
+const noopStream = { write: () => {} };
 
-const errorLogStream = fs.createWriteStream(
-  path.join(logsDir, 'error.log'),
-  { flags: 'a' }
-);
+const accessLogStream = isTest
+  ? noopStream
+  : fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
+
+const errorLogStream = isTest
+  ? noopStream
+  : fs.createWriteStream(path.join(logsDir, 'error.log'), { flags: 'a' });
 
 // Morgan middleware configurations
 const morganConfigs = {

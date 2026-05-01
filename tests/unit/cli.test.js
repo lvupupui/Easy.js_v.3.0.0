@@ -64,8 +64,10 @@ describe('CLI defaults', () => {
 
       expect(fs.existsSync(path.join(temp, 'ui-api', 'template', 'index.html'))).toBe(true);
       expect(fs.existsSync(path.join(temp, 'ui-api', 'template', 'styles.css'))).toBe(true);
+      expect(fs.existsSync(path.join(temp, 'ui-api', 'template', 'api.js'))).toBe(true);
       expect(fs.existsSync(path.join(temp, 'ui-api', 'template', 'app.js'))).toBe(true);
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'index.html'), 'utf8')).toContain('route-list');
+      expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'api.js'), 'utf8')).toContain('window.EasyAPI');
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'template', 'app.js'), 'utf8')).toContain('copyCurl');
       expect(fs.readFileSync(path.join(temp, 'ui-api', 'README.md'), 'utf8')).toContain('template folder');
       expect(JSON.parse(fs.readFileSync(path.join(temp, 'ui-api', 'package.json'), 'utf8')).dependencies['easybackend.js']).toBe('^3.3.0');
@@ -111,6 +113,28 @@ describe('CLI defaults', () => {
       expect(pkg.dependencies.tailwindcss).toBe('^3.4.17');
       expect(pkg.scripts['ui:build']).toContain('tailwindcss');
       expect(fs.existsSync('template/index.html')).toBe(true);
+      expect(fs.existsSync('template/api.js')).toBe(true);
+    } finally {
+      process.chdir(cwd);
+      fs.rmSync(temp, { recursive: true, force: true });
+    }
+  });
+
+  it('adds template pages and links them from the starter UI', () => {
+    const cwd = process.cwd();
+    const temp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'easy-cli-'));
+    try {
+      process.chdir(temp);
+      const cli = new CLI(['node', 'cli/index.js', 'create', 'pages-api']);
+      cli.createProject();
+      process.chdir(path.join(temp, 'pages-api'));
+
+      const projectCli = new CLI(['node', 'cli/index.js', 'add', 'page', 'admin dashboard']);
+      projectCli.addTemplatePage('admin dashboard');
+
+      expect(fs.existsSync('template/pages/admin-dashboard.html')).toBe(true);
+      expect(fs.readFileSync('template/pages/admin-dashboard.html', 'utf8')).toContain('EasyAPI.get');
+      expect(fs.readFileSync('template/index.html', 'utf8')).toContain('/template/pages/admin-dashboard.html');
     } finally {
       process.chdir(cwd);
       fs.rmSync(temp, { recursive: true, force: true });

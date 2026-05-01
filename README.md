@@ -94,7 +94,7 @@ npm install @supabase/supabase-js
 
 `easyjs doctor` reads your `.easy` files and tells you the exact package to install when a selected provider is missing.
 
-New projects also include an editable `template/` folder. Put plain HTML, CSS, and JavaScript there and easy.js serves it at `/`, so you can design a small UI without setting up a separate frontend build.
+New projects also include an editable `template/` folder. Put plain HTML, CSS, and JavaScript there and easy.js serves it at `/`, so you can design a small UI without setting up a separate frontend build. The generated `template/api.js` exposes `EasyAPI.get()`, `EasyAPI.post()`, and related helpers for calling your backend.
 
 You can choose a UI preset:
 
@@ -103,6 +103,7 @@ npx easybackend.js create my-api --ui bootstrap
 npx easybackend.js create my-api --ui tailwind
 easyjs add ui bootstrap
 easyjs add ui tailwind
+easyjs add page dashboard
 ```
 
 ### Create a Project
@@ -458,6 +459,7 @@ easyjs add route products
 easyjs add crud products
 easyjs add auth jwt
 easyjs add database postgres
+easyjs add page dashboard
 ```
 
 ### Check Provider Packages

@@ -30,7 +30,7 @@ function main() {
   fs.mkdirSync(consumerDir);
 
   try {
-    runNpm(['test', '--', '--runInBand', '--forceExit']);
+    runNpm(['test', '--', '--runInBand']);
     runNpm(['run', 'validate:production']);
     runNpm(['pack', '--dry-run', '--cache', path.join(temp, 'npm-cache')]);
     runNpm(['pack', '--pack-destination', packDir, '--cache', path.join(temp, 'npm-cache')]);
@@ -62,6 +62,7 @@ function main() {
     for (const required of [
       path.join(consumerDir, 'smoke-api', 'template', 'index.html'),
       path.join(consumerDir, 'smoke-api', 'template', 'styles.css'),
+      path.join(consumerDir, 'smoke-api', 'template', 'api.js'),
       path.join(consumerDir, 'smoke-api', 'template', 'app.js')
     ]) {
       if (!fs.existsSync(required)) {

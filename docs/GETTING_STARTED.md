@@ -14,7 +14,15 @@ npm run dev
 
 Open `http://localhost:3000/` for the starter UI with the easy.js logo, health links, and generated routes.
 
-The generated `template/` folder contains plain HTML, CSS, and JavaScript. Edit those files to design the UI that talks to your backend.
+The generated `template/` folder contains plain HTML, CSS, and JavaScript. Edit those files to design the UI that talks to your backend. Use `template/api.js` from any page:
+
+```html
+<script src="/template/api.js"></script>
+<script>
+  EasyAPI.get('/health').then(console.log);
+  EasyAPI.post('/posts', { title: 'Hello' }).then(console.log);
+</script>
+```
 
 Choose a UI preset when creating a project:
 
@@ -28,6 +36,7 @@ Or add one later:
 ```bash
 easyjs add ui bootstrap
 easyjs add ui tailwind
+easyjs add page dashboard
 ```
 
 ## The Starter Structure
@@ -48,8 +57,10 @@ my-api/
 |-- docs/
 |-- template/
 |   |-- index.html
+|   |-- api.js
 |   |-- styles.css
-|   `-- app.js
+|   |-- app.js
+|   `-- pages/
 |-- Dockerfile
 |-- docker-compose.yml
 |-- .env
