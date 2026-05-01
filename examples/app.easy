@@ -1,0 +1,46 @@
+START SERVER 4000
+
+USE MONGODB mongodb://localhost:27017/easyjs_demo
+
+MODEL users {
+  name: string
+  email: string
+  password: string
+  age: number
+}
+
+MODEL posts {
+  title: string
+  content: string
+  authorId: string
+  published: boolean
+}
+
+AUTH users BY jwt
+
+GET /users FROM users
+GET /users/:id FROM users
+POST /users FROM users
+PUT /users/:id FROM users
+DELETE /users/:id FROM users
+
+GET /posts FROM posts
+POST /posts FROM posts
+PUT /posts/:id FROM posts
+DELETE /posts/:id FROM posts
+
+VALIDATE users {
+  email: required:email
+  password: required:min=6
+  name: required:min=2
+  age: numeric
+}
+
+VALIDATE posts {
+  title: required:min=3
+  content: required:min=10
+  authorId: required
+}
+
+PROTECT /users
+PROTECT /posts

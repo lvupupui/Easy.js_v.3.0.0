@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: easyjs-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DB_TYPE: ${DB_TYPE:-mysql}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      DB_NAME: ${DB_NAME:-easyjs}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - easyjs-network
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: easyjs-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-easyjs}
+      MYSQL_USER: ${DB_USER:-easyjs}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+    networks:
+      - easyjs-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: easyjs-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-easyjs}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+    networks:
+      - easyjs-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:6.0
+    container_name: easyjs-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-easyjs}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      timeout: 20s
+      retries: 10
+      interval: 10s
+    networks:
+      - easyjs-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: easyjs-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+    networks:
+      - easyjs-network
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+    container_name: easyjs-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null || exit 1
+      timeout: 20s
+      retries: 10
+      interval: 10s
+    networks:
+      - easyjs-network
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  postgres-data:
+  mongodb-data:
+  redis-data:
+  elasticsearch-data:
+
+networks:
+  easyjs-network:
+    driver: bridge

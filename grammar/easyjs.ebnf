@@ -1,0 +1,41 @@
+program        = { statement } ;
+statement      = server | import | use | security | docs | admin | model | auth | role | route | protect | validate | job ;
+
+server         = "START" "SERVER" number ;
+import         = "IMPORT" path ;
+use            = "USE" database connection ;
+security       = "SECURITY" ("strict" | "standard" | "off") ;
+docs           = "DOCS" ("openapi" | "disabled") ;
+admin          = "ADMIN" ("enabled" | "disabled") ;
+
+model          = "MODEL" identifier "{" { field } "}" ;
+field          = identifier ":" type ;
+type           = "string" | "email" | "password" | "number" | "integer" | "boolean" | "date" | "datetime" | "object" | "array" | "json" | "uuid" | "text" ;
+
+auth           = "AUTH" identifier "BY" auth_type | "AUTH" auth_feature "enabled" ;
+auth_type      = "jwt" | "api_key" ;
+auth_feature   = "refresh_tokens" | "password_reset" | "email_verification" ;
+
+role           = "ROLE" identifier "CAN" permission_list ;
+permission_list = permission { "," permission } ;
+permission     = "*" | identifier ":" identifier ;
+
+route          = method path "FROM" identifier ;
+method         = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" ;
+protect        = "PROTECT" path ;
+
+validate       = "VALIDATE" identifier "{" { validation_field } "}" ;
+validation_field = identifier ":" validation_rule { ":" validation_rule } ;
+validation_rule = "required" | "email" | "url" | "uuid" | "number" | "boolean" | "date" | "min=" number | "max=" number ;
+
+job            = "JOB" identifier "EVERY" duration "{" { job_statement } "}" ;
+job_statement  = "LOG" string ;
+
+database       = "MONGODB" | "MYSQL" | "POSTGRESQL" | "POSTGRES" ;
+connection     = string | symbol ;
+duration       = number ("s" | "m" | "h" | "d") ;
+identifier     = letter { letter | digit | "_" } ;
+path           = "/" { ? non whitespace ? } | "." "/" { ? non whitespace ? } ;
+number         = digit { digit } ;
+string         = '"' { ? any char except quote ? } '"' ;
+symbol         = { ? non whitespace ? } ;

@@ -1,0 +1,68 @@
+name: easy.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: easyjs
+          POSTGRES_PASSWORD: easyjs
+          POSTGRES_DB: easyjs_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - run: npm run lint:easy
+      - run: npm run typecheck
+      - run: npm run validate:production
+      - run: npm run test:coverage
+      - run: npm run test:live:adapters
+        env:
+          LIVE_ADAPTERS: true
+          POSTGRES_URL: postgres://easyjs:easyjs@localhost:5432/easyjs_test
+          REDIS_URL: redis://localhost:6379
+          MONGODB_URL: mongodb://localhost:27017/easyjs_test
+      - run: npm run migrate:latest
+        env:
+          NODE_ENV: test
+          DB_CLIENT: pg
+          DB_HOST: localhost
+          DB_USER: easyjs
+          DB_PASSWORD: easyjs
+          DB_NAME: easyjs_test

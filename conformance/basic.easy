@@ -1,0 +1,30 @@
+START SERVER 3000
+USE MONGODB mongodb://localhost:27017/conformance
+SECURITY strict
+DOCS openapi
+ADMIN enabled
+
+MODEL users {
+  name: string
+  email: email
+  password: password
+}
+
+AUTH users BY jwt
+AUTH refresh_tokens enabled
+
+ROLE admin CAN *
+ROLE user CAN users:read
+
+GET /users FROM users
+POST /users FROM users
+PROTECT /users
+
+VALIDATE users {
+  email: required:email
+  password: required:min=8
+}
+
+JOB cleanup EVERY 1h {
+  LOG "cleanup"
+}

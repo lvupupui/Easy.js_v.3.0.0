@@ -1,0 +1,240 @@
+{
+  "easy.js Secure App": {
+    "prefix": "eapp",
+    "body": [
+      "START SERVER ${1:3000}",
+      "USE MONGODB ${2:mongodb://localhost:27017/app}",
+      "",
+      "SECURITY strict",
+      "DOCS openapi",
+      "ADMIN enabled",
+      "",
+      "IMPORT ./models.easy",
+      "IMPORT ./auth.easy",
+      "IMPORT ./routes.easy",
+      "IMPORT ./jobs.easy"
+    ],
+    "description": "Create a secure easy.js app entry"
+  },
+  "easy.js Model": {
+    "prefix": "emodel",
+    "body": [
+      "MODEL ${1:items} {",
+      "  name: string",
+      "  createdAt: date",
+      "}"
+    ],
+    "description": "Create an easy.js model"
+  },
+  "easy.js CRUD": {
+    "prefix": "ecrud",
+    "body": [
+      "GET /${1:items} FROM ${1:items}",
+      "GET /${1:items}/:id FROM ${1:items}",
+      "POST /${1:items} FROM ${1:items}",
+      "PUT /${1:items}/:id FROM ${1:items}",
+      "DELETE /${1:items}/:id FROM ${1:items}",
+      "PROTECT /${1:items}"
+    ],
+    "description": "Create protected CRUD routes"
+  },
+  "easy.js Secure Auth": {
+    "prefix": "eauth",
+    "body": [
+      "AUTH users BY jwt",
+      "AUTH refresh_tokens enabled",
+      "AUTH password_reset enabled",
+      "AUTH email_verification enabled",
+      "",
+      "ROLE admin CAN *",
+      "ROLE user CAN ${1:items}:read, ${1:items}:create"
+    ],
+    "description": "Create secure auth declarations"
+  },
+  "React Functional Component": {
+    "prefix": "rfc",
+    "body": [
+      "export default function ${1:ComponentName}() {",
+      "  return (",
+      "    <div className=\"$2\">",
+      "      $0",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Create a React functional component"
+  },
+  "Vue Component": {
+    "prefix": "rvue",
+    "body": [
+      "<template>",
+      "  <div class=\"$2\">",
+      "    $0",
+      "  </div>",
+      "</template>",
+      "",
+      "<script setup>",
+      "import { ref } from 'vue';",
+      "</script>",
+      "",
+      "<style scoped>",
+      "</style>"
+    ],
+    "description": "Create a Vue 3 component"
+  },
+  "useState Hook": {
+    "prefix": "ust",
+    "body": [
+      "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useState(${2:initialValue});"
+    ],
+    "description": "React useState hook"
+  },
+  "useEffect Hook": {
+    "prefix": "uef",
+    "body": [
+      "useEffect(() => {",
+      "  $0",
+      "}, [${1:dependency}]);"
+    ],
+    "description": "React useEffect hook"
+  },
+  "Form Component": {
+    "prefix": "form",
+    "body": [
+      "<form onSubmit={${1:handleSubmit}} className=\"$2\">",
+      "  <div className=\"mb-4\">",
+      "    <label className=\"block text-sm font-bold\">",
+      "      ${3:Label}",
+      "    </label>",
+      "    <input",
+      "      type=\"${4:text}\"",
+      "      placeholder=\"${5:placeholder}\"",
+      "      className=\"w-full px-3 py-2 border rounded\"",
+      "      onChange={${6:handleChange}}",
+      "    />",
+      "  </div>",
+      "  <button type=\"submit\" className=\"bg-blue-500 text-white px-4 py-2 rounded\">",
+      "    Submit",
+      "  </button>",
+      "</form>"
+    ],
+    "description": "Form with input and submit button"
+  },
+  "Table Component": {
+    "prefix": "table",
+    "body": [
+      "<table className=\"w-full border-collapse\">",
+      "  <thead className=\"bg-gray-200\">",
+      "    <tr>",
+      "      <th className=\"border px-4 py-2 text-left\">${1:Header 1}</th>",
+      "      <th className=\"border px-4 py-2 text-left\">${2:Header 2}</th>",
+      "    </tr>",
+      "  </thead>",
+      "  <tbody>",
+      "    {data.map((item) => (",
+      "      <tr key={item.id}>",
+      "        <td className=\"border px-4 py-2\">{item.$3}</td>",
+      "        <td className=\"border px-4 py-2\">{item.$4}</td>",
+      "      </tr>",
+      "    ))}",
+      "  </tbody>",
+      "</table>"
+    ],
+    "description": "Data table with mapping"
+  },
+  "Button Component": {
+    "prefix": "btn",
+    "body": [
+      "<button",
+      "  className=\"px-4 py-2 rounded ${1|bg-blue-500,bg-red-500,bg-green-500|} text-white hover:opacity-80\"",
+      "  onClick={${2:handleClick}}",
+      ">",
+      "  ${3:Click me}",
+      "</button>"
+    ],
+    "description": "Styled button component"
+  },
+  "Card Component": {
+    "prefix": "card",
+    "body": [
+      "<div className=\"bg-white rounded-lg shadow-md p-6\">",
+      "  <h3 className=\"text-lg font-bold mb-2\">${1:Title}</h3>",
+      "  <p className=\"text-gray-600\">",
+      "    ${2:Content}",
+      "  </p>",
+      "</div>"
+    ],
+    "description": "Card/Panel component"
+  },
+  "Modal Component": {
+    "prefix": "modal",
+    "body": [
+      "{${1:isOpen} && (",
+      "  <div className=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center\">",
+      "    <div className=\"bg-white rounded-lg p-6 max-w-md\">",
+      "      <h2 className=\"text-xl font-bold mb-4\">${2:Title}</h2>",
+      "      <p className=\"mb-6\">${3:Content}</p>",
+      "      <button",
+      "        className=\"bg-blue-500 text-white px-4 py-2 rounded\"",
+      "        onClick={${4:handleClose}}",
+      "      >",
+      "        Close",
+      "      </button>",
+      "    </div>",
+      "  </div>",
+      ")}"
+    ],
+    "description": "Modal dialog component"
+  },
+  "Navigation Menu": {
+    "prefix": "nav",
+    "body": [
+      "<nav className=\"bg-gray-800 text-white p-4\">",
+      "  <div className=\"flex justify-between items-center\">",
+      "    <h1 className=\"text-2xl font-bold\">${1:Logo}</h1>",
+      "    <ul className=\"flex gap-4\">",
+      "      <li><a href=\"#\">${2:Home}</a></li>",
+      "      <li><a href=\"#\">${3:About}</a></li>",
+      "      <li><a href=\"#\">${4:Contact}</a></li>",
+      "    </ul>",
+      "  </div>",
+      "</nav>"
+    ],
+    "description": "Navigation bar component"
+  },
+  "Grid Layout": {
+    "prefix": "grid",
+    "body": [
+      "<div className=\"grid grid-cols-${1|2,3,4|} gap-4\">",
+      "  {items.map((item) => (",
+      "    <div key={item.id} className=\"bg-white rounded-lg p-4 shadow\">",
+      "      ${2:item content}",
+      "    </div>",
+      "  ))}",
+      "</div>"
+    ],
+    "description": "Responsive grid layout"
+  },
+  "Conditional Rendering": {
+    "prefix": "cond",
+    "body": [
+      "{${1:condition} ? (",
+      "  <div>${2:True content}</div>",
+      ") : (",
+      "  <div>${3:False content}</div>",
+      ")}"
+    ],
+    "description": "Conditional rendering in JSX"
+  },
+  "Map/List Rendering": {
+    "prefix": "map",
+    "body": [
+      "{${1:items}?.map((${2:item}) => (",
+      "  <${3:div} key={${2:item}}.id}>",
+      "    ${4:content}",
+      "  </${3:div}>",
+      "))}"
+    ],
+    "description": "Array mapping in JSX"
+  }
+}

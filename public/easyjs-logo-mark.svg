@@ -1,0 +1,19 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="easy.js logo mark">
+  <rect width="256" height="256" rx="40" fill="#F7FAF6"/>
+  <g transform="translate(58 46)" stroke="#4D963F" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M16 16H128V48H48V66"/>
+    <path d="M16 82H96"/>
+    <path d="M48 100V116H128V148H16"/>
+    <path d="M16 16V148"/>
+    <path d="M128 16V48"/>
+    <path d="M128 116V148"/>
+  </g>
+  <g fill="#4D963F">
+    <circle cx="74" cy="62" r="16"/>
+    <circle cx="186" cy="62" r="16"/>
+    <circle cx="74" cy="128" r="16"/>
+    <circle cx="154" cy="128" r="16"/>
+    <circle cx="74" cy="194" r="16"/>
+    <circle cx="186" cy="194" r="16"/>
+  </g>
+</svg>

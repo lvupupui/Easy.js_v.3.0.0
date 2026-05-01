@@ -1,0 +1,25 @@
+START SERVER 3000
+
+USE MONGODB mongodb://localhost:27017/quickstart
+
+MODEL users {
+  name: string
+  email: string
+  password: string
+}
+
+AUTH users BY jwt
+
+GET /users FROM users
+GET /users/:id FROM users
+POST /users FROM users
+PUT /users/:id FROM users
+DELETE /users/:id FROM users
+
+VALIDATE users {
+  email: required:email
+  password: required:min=6
+  name: required:min=2
+}
+
+PROTECT /users

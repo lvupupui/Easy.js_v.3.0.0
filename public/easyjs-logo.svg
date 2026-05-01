@@ -1,0 +1,21 @@
+<svg width="1024" height="576" viewBox="0 0 1024 576" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">easy.js logo</title>
+  <desc id="desc">Green circuit-style letter E mark for easy.js.</desc>
+  <rect width="1024" height="576" fill="#F7FAF6"/>
+  <g transform="translate(394 156)" stroke="#4D963F" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M24 24H212V76H76V104"/>
+    <path d="M24 132H160"/>
+    <path d="M76 160V184H212V236H24"/>
+    <path d="M24 24V236"/>
+    <path d="M212 24V76"/>
+    <path d="M212 184V236"/>
+  </g>
+  <g fill="#4D963F">
+    <circle cx="418" cy="180" r="24"/>
+    <circle cx="606" cy="180" r="24"/>
+    <circle cx="418" cy="288" r="24"/>
+    <circle cx="554" cy="288" r="24"/>
+    <circle cx="418" cy="392" r="24"/>
+    <circle cx="606" cy="392" r="24"/>
+  </g>
+</svg>
