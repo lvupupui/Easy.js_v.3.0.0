@@ -11,10 +11,7 @@ class CassandraAdapter {
   async connect(config, models) {
     try {
       const keyspace = assertIdentifier(config.keyspace || 'easyjs', 'keyspace');
-      this.client = new cassandra.Client({
-        contactPoints: config.contactPoints || ['127.0.0.1'],
-        localDataCenter: config.localDataCenter || 'datacenter1'
-      });
+      this.client = new cassandra.Client(this.buildClientConfig(config));
 
       await this.client.connect();
       this.connected = true;
@@ -39,6 +36,32 @@ class CassandraAdapter {
       WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
     `;
     await this.client.execute(query);
+  }
+
+  buildClientConfig(config = {}) {
+    const clientConfig = {
+      contactPoints: config.contactPoints || ['127.0.0.1'],
+      localDataCenter: config.localDataCenter || 'datacenter1'
+    };
+
+    if (config.username && config.password) {
+      clientConfig.authProvider = new cassandra.auth.PlainTextAuthProvider(config.username, config.password);
+    }
+
+    if (config.sslOptions) {
+      clientConfig.sslOptions = config.sslOptions;
+    } else if (config.ssl) {
+      clientConfig.sslOptions = {};
+    }
+
+    const secureConnectBundle = config.secureConnectBundle || config.cloudSecureConnectBundle;
+    if (secureConnectBundle) {
+      clientConfig.cloud = { secureConnectBundle };
+    } else if (config.cloud) {
+      clientConfig.cloud = config.cloud;
+    }
+
+    return clientConfig;
   }
 
   async createTable(model, keyspace) {

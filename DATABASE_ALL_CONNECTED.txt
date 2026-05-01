@@ -395,3 +395,8 @@ FLEXIBLE, SCALABLE, PRODUCTION-READY
                   MySQL to NoSQL - All Databases Supported
 
 ════════════════════════════════════════════════════════════════════════════════
+CURRENT VALIDATION NOTE
+Cloud/provider adapters are implemented and covered by local contract tests.
+Real Supabase, Firebase, DynamoDB, Elasticsearch, Cassandra, and Neo4j
+validation requires LIVE_ADAPTERS=true plus provider credentials or local
+services. See docs/LIVE_ADAPTERS.md.

@@ -23,6 +23,9 @@ jest.mock('firebase-admin', () => ({
 }));
 jest.mock('cassandra-driver', () => ({
   Client: jest.fn(),
+  auth: {
+    PlainTextAuthProvider: jest.fn((username, password) => ({ username, password }))
+  },
   types: { uuid: jest.fn(() => ({ toString: () => 'cass-id' })) }
 }));
 jest.mock('neo4j-driver', () => ({
@@ -495,6 +498,27 @@ describe('database adapter contracts', () => {
     await adapter.connect({ contactPoints: ['db'], localDataCenter: 'dc1', keyspace: 'app' }, [model]);
 
     expect(cassandra.Client).toHaveBeenCalledWith({ contactPoints: ['db'], localDataCenter: 'dc1' });
+    expect(adapter.buildClientConfig({
+      contactPoints: ['secure-db'],
+      localDataCenter: 'dc2',
+      username: 'user',
+      password: 'pass',
+      ssl: true,
+      secureConnectBundle: 'secure-connect.zip'
+    })).toEqual({
+      contactPoints: ['secure-db'],
+      localDataCenter: 'dc2',
+      authProvider: { username: 'user', password: 'pass' },
+      sslOptions: {},
+      cloud: { secureConnectBundle: 'secure-connect.zip' }
+    });
+    expect(adapter.buildClientConfig({
+      sslOptions: { ca: 'cert' },
+      cloud: { secureConnectBundle: 'cloud.zip' }
+    })).toEqual(expect.objectContaining({
+      sslOptions: { ca: 'cert' },
+      cloud: { secureConnectBundle: 'cloud.zip' }
+    }));
     expect(adapter.mapType('json')).toBe('text');
     expect(await adapter.query('users', 'findOne', { id: '1' })).toEqual({ id: '1' });
     expect(await adapter.query('users', 'findMany', { email: 'a@example.com' }, { limit: 2 })).toEqual([{ id: '1' }, { id: '2' }]);

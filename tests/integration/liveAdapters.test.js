@@ -228,7 +228,11 @@ live('live database adapter contracts', () => {
     await adapter.connect({
       contactPoints: process.env.CASSANDRA_CONTACT_POINTS.split(',').map(point => point.trim()).filter(Boolean),
       localDataCenter: env('CASSANDRA_LOCAL_DATACENTER') || 'datacenter1',
-      keyspace: process.env.CASSANDRA_KEYSPACE
+      keyspace: process.env.CASSANDRA_KEYSPACE,
+      username: env('CASSANDRA_USERNAME'),
+      password: env('CASSANDRA_PASSWORD'),
+      ssl: env('CASSANDRA_SSL') === 'true',
+      secureConnectBundle: env('CASSANDRA_SECURE_CONNECT_BUNDLE')
     }, [model]);
 
     const id = '550e8400-e29b-41d4-a716-446655440000';

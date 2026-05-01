@@ -66,7 +66,7 @@ SQL-style adapters sanitize table and column identifiers before building SQL. Va
 
 ## Live Adapter Validation
 
-Run `npm run test:live:adapters` for the live adapter contract suite. It is skipped unless `LIVE_ADAPTERS=true` is set.
+Run `npm run test:live:adapters` for the live adapter contract suite. It is skipped unless `LIVE_ADAPTERS=true` is set. See `docs/LIVE_ADAPTERS.md` for complete setup examples.
 
 Local adapters use these defaults unless overridden: `POSTGRES_URL`, `REDIS_URL`, and `MONGODB_URL`.
 
@@ -76,7 +76,7 @@ Provider adapters run only when their required service configuration is present:
 - Firebase/Firestore: `FIREBASE_PROJECT_ID` plus one of `FIREBASE_CREDENTIALS_JSON`, `FIREBASE_CREDENTIALS_BASE64`, or `FIREBASE_CREDENTIALS_FILE`
 - DynamoDB: `AWS_REGION` plus `DYNAMODB_ENDPOINT`, `AWS_PROFILE`, or `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`; optional `DYNAMODB_TABLE`
 - Elasticsearch/OpenSearch: `ELASTICSEARCH_URL`, optional basic auth, API key, and `ELASTICSEARCH_INDEX`
-- Cassandra: `CASSANDRA_CONTACT_POINTS`, `CASSANDRA_KEYSPACE`, optional `CASSANDRA_LOCAL_DATACENTER`
+- Cassandra: `CASSANDRA_CONTACT_POINTS`, `CASSANDRA_KEYSPACE`, optional `CASSANDRA_LOCAL_DATACENTER`, username/password, SSL, or secure-connect bundle settings
 - Neo4j: `NEO4J_URL`
 
 Supabase tables must already exist because the public Supabase client cannot create schema. Use `docs/supabase-live-validation.sql` in the Supabase SQL editor, or point `SUPABASE_TABLE` at an equivalent table. Other live providers create or initialize their test table, collection, index, label, or keyspace through the adapter lifecycle.

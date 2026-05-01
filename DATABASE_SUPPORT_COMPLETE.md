@@ -1,5 +1,7 @@
 # easy.js - Complete Database Support (SQL + NoSQL)
 
+> Current validation note: adapter implementations and mocked contract tests are present, and live validation is available through `npm run test:live:adapters`. Paid/cloud/provider adapters such as Supabase, Firebase, DynamoDB, Elasticsearch, Cassandra, and Neo4j require real service credentials or local service setup before they can be considered live-verified in a given environment. See `docs/LIVE_ADAPTERS.md`.
+
 ## Supported Databases
 
 easy.js now supports **8 different database types** with a unified abstraction layer. Switch between databases with a single configuration change!
@@ -560,4 +562,3 @@ easy.js now provides **complete database flexibility**:
 ✓ Production-ready drivers
 
 You can build your entire application with one database, then seamlessly switch to another as your needs evolve!
-

@@ -434,3 +434,4 @@ npm start
 *Verification: Complete ✅*  
 *Quality: World-Class*  
 *Status: PRODUCTION READY*
+> Current validation note: this historical status file predates the live provider validation harness. Cloud/provider adapters are contract-tested locally, but real Supabase, Firebase, DynamoDB, Elasticsearch, Cassandra, and Neo4j validation requires `LIVE_ADAPTERS=true` plus provider credentials or local services. See `docs/LIVE_ADAPTERS.md`.

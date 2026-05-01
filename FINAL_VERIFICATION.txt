@@ -420,3 +420,8 @@ Ease of Use:             10/10 (Simplest framework)
                 "The world's best backend framework"
 
 ═══════════════════════════════════════════════════════════════════════════════
+CURRENT VALIDATION NOTE
+This historical verification report does not imply that paid/cloud provider
+adapters have been live-tested in every environment. Use
+LIVE_ADAPTERS=true npm run test:live:adapters with the provider configuration
+documented in docs/LIVE_ADAPTERS.md for current live verification.
