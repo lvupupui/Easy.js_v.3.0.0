@@ -1,13 +1,4 @@
-const {
-  CopyObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
-  S3Client
-} = require('@aws-sdk/client-s3');
-const { Upload } = require('@aws-sdk/lib-storage');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const optionalRequire = require('../core/optionalRequire');
 const loggerWinston = require('../core/loggerWinston');
 
 class CloudStorageManager {
@@ -15,13 +6,17 @@ class CloudStorageManager {
     this.provider = provider;
     this.config = config;
     this.client = null;
+    this.sdk = {};
     this.initialize();
   }
 
   initialize() {
     switch (this.provider) {
       case 's3':
-        this.client = new S3Client({
+        this.sdk.s3 = optionalRequire('@aws-sdk/client-s3', 'S3 storage');
+        this.sdk.Upload = optionalRequire('@aws-sdk/lib-storage', 'S3 uploads').Upload;
+        this.sdk.getSignedUrl = optionalRequire('@aws-sdk/s3-request-presigner', 'S3 signed URLs').getSignedUrl;
+        this.client = new this.sdk.s3.S3Client({
           region: this.config.region || process.env.AWS_REGION || 'us-east-1',
           credentials: this.config.accessKeyId && this.config.secretAccessKey ? {
             accessKeyId: this.config.accessKeyId,
@@ -30,7 +25,7 @@ class CloudStorageManager {
         });
         break;
       case 'gcs': {
-        const { Storage } = require('@google-cloud/storage');
+        const { Storage } = optionalRequire('@google-cloud/storage', 'Google Cloud Storage');
         this.client = new Storage({
           projectId: this.config.projectId,
           keyFilename: this.config.keyFilename
@@ -38,7 +33,7 @@ class CloudStorageManager {
         break;
       }
       case 'azure': {
-        const { BlobServiceClient } = require('@azure/storage-blob');
+        const { BlobServiceClient } = optionalRequire('@azure/storage-blob', 'Azure Blob Storage');
         this.client = BlobServiceClient.fromConnectionString(
           this.config.connectionString
         );
@@ -56,7 +51,7 @@ class CloudStorageManager {
       let result;
 
       if (this.provider === 's3') {
-        result = await new Upload({
+        result = await new this.sdk.Upload({
           client: this.client,
           params: {
             Bucket: this.config.bucket,
@@ -90,7 +85,7 @@ class CloudStorageManager {
     try {
       let data;
       if (this.provider === 's3') {
-        const result = await this.client.send(new GetObjectCommand({
+        const result = await this.client.send(new this.sdk.s3.GetObjectCommand({
           Bucket: this.config.bucket,
           Key: key
         }));
@@ -116,7 +111,7 @@ class CloudStorageManager {
   async deleteFile(key) {
     try {
       if (this.provider === 's3') {
-        await this.client.send(new DeleteObjectCommand({
+        await this.client.send(new this.sdk.s3.DeleteObjectCommand({
           Bucket: this.config.bucket,
           Key: key
         }));
@@ -139,7 +134,7 @@ class CloudStorageManager {
   async listFiles(prefix = '', options = {}) {
     try {
       if (this.provider === 's3') {
-        const result = await this.client.send(new ListObjectsV2Command({
+        const result = await this.client.send(new this.sdk.s3.ListObjectsV2Command({
           Bucket: this.config.bucket,
           Prefix: prefix,
           MaxKeys: options.limit || 100
@@ -169,9 +164,9 @@ class CloudStorageManager {
   async getSignedUrl(key, expiresIn = 3600) {
     try {
       if (this.provider === 's3') {
-        return getSignedUrl(
+        return this.sdk.getSignedUrl(
           this.client,
-          new GetObjectCommand({ Bucket: this.config.bucket, Key: key }),
+          new this.sdk.s3.GetObjectCommand({ Bucket: this.config.bucket, Key: key }),
           { expiresIn }
         );
       }
@@ -186,7 +181,7 @@ class CloudStorageManager {
         return url;
       }
 
-      const { StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = require('@azure/storage-blob');
+      const { StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = optionalRequire('@azure/storage-blob', 'Azure Blob Storage');
       const credential = new StorageSharedKeyCredential(this.config.accountName, this.config.accountKey);
       const sas = generateBlobSASQueryParameters({
         containerName: this.config.container,
@@ -214,7 +209,7 @@ class CloudStorageManager {
   async copyFile(sourceKey, destinationKey) {
     try {
       if (this.provider === 's3') {
-        await this.client.send(new CopyObjectCommand({
+        await this.client.send(new this.sdk.s3.CopyObjectCommand({
           Bucket: this.config.bucket,
           CopySource: `${this.config.bucket}/${sourceKey}`,
           Key: destinationKey
@@ -239,7 +234,7 @@ class CloudStorageManager {
   async getFileMetadata(key) {
     try {
       if (this.provider === 's3') {
-        const result = await this.client.send(new HeadObjectCommand({
+        const result = await this.client.send(new this.sdk.s3.HeadObjectCommand({
           Bucket: this.config.bucket,
           Key: key
         }));

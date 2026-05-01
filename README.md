@@ -84,6 +84,14 @@ easy.js simplifies backend development by letting you write backend applications
 npm install easybackend.js
 ```
 
+Provider SDKs and database drivers are optional so normal installs stay small. Install only what your app uses, for example:
+
+```bash
+npm install mongoose
+npm install pg
+npm install @supabase/supabase-js
+```
+
 ### Create a Project
 
 ```bash

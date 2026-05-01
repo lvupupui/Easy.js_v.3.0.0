@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const optionalRequire = require('../core/optionalRequire');
 const loggerWinston = require('../core/loggerWinston');
 
 class EmailService {
@@ -13,16 +13,17 @@ class EmailService {
   initialize() {
     switch (this.provider) {
       case 'nodemailer':
+        const nodemailer = optionalRequire('nodemailer', 'Nodemailer email');
         this.transporter = nodemailer.createTransport(this.config);
         break;
       case 'sendgrid':
-        const sgMail = require('@sendgrid/mail');
+        const sgMail = optionalRequire('@sendgrid/mail', 'SendGrid email');
         sgMail.setApiKey(this.config.apiKey);
         this.transporter = sgMail;
         break;
       case 'mailgun':
-        const mailgun = require('mailgun.js');
-        const Mailgun = require('mailgun.js/build/es5').default;
+        const mailgun = optionalRequire('mailgun.js', 'Mailgun email');
+        const Mailgun = optionalRequire('mailgun.js/build/es5', 'Mailgun email').default;
         this.transporter = new Mailgun(mailgun).client({
           username: 'api',
           key: this.config.apiKey

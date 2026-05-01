@@ -1,8 +1,9 @@
-const stripe = require('stripe');
+const optionalRequire = require('../core/optionalRequire');
 const loggerWinston = require('../core/loggerWinston');
 
 class PaymentProcessor {
   constructor(apiKey, webhookSecret = null) {
+    const stripe = optionalRequire('stripe', 'Stripe payments');
     this.stripe = new stripe(apiKey);
     this.webhookSecret = webhookSecret;
   }

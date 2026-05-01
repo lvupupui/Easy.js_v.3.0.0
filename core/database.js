@@ -1,21 +1,27 @@
 const Logger = require('./logger');
 const QueryBuilder = require('./queryBuilder');
 const { normalizeModels, normalizeQueryInput } = require('./databaseUtils');
-
-const MongoDBAdapter = require('../adapters/mongodb');
-const MySQLAdapter = require('../adapters/mysql');
-const PostgreSQLAdapter = require('../adapters/postgresql');
-const FirebaseAdapter = require('../adapters/firebase');
-const DynamoDBAdapter = require('../adapters/dynamodb');
-const SupabaseAdapter = require('../adapters/supabase');
-const ElasticsearchAdapter = require('../adapters/elasticsearch');
-const CassandraAdapter = require('../adapters/cassandra');
-const SQLiteAdapter = require('../adapters/sqlite');
-const LibSQLAdapter = require('../adapters/libsql');
-const MSSQLAdapter = require('../adapters/mssql');
-const Neo4jAdapter = require('../adapters/neo4j');
-const RedisAdapter = require('../adapters/redis');
 const OptionalPackageAdapter = require('../adapters/optionalPackage');
+
+function loadAdapter(modulePath) {
+  return () => require(modulePath);
+}
+
+const adapters = {
+  mongodb: loadAdapter('../adapters/mongodb'),
+  mysql: loadAdapter('../adapters/mysql'),
+  postgresql: loadAdapter('../adapters/postgresql'),
+  firebase: loadAdapter('../adapters/firebase'),
+  dynamodb: loadAdapter('../adapters/dynamodb'),
+  redis: loadAdapter('../adapters/redis'),
+  supabase: loadAdapter('../adapters/supabase'),
+  elasticsearch: loadAdapter('../adapters/elasticsearch'),
+  cassandra: loadAdapter('../adapters/cassandra'),
+  sqlite: loadAdapter('../adapters/sqlite'),
+  libsql: loadAdapter('../adapters/libsql'),
+  mssql: loadAdapter('../adapters/mssql'),
+  neo4j: loadAdapter('../adapters/neo4j')
+};
 
 class DatabaseManager {
   constructor() {
@@ -23,34 +29,34 @@ class DatabaseManager {
     this.primaryDB = null;
     this.dbConfigs = {};
     this.adapterMap = {
-      mongodb: MongoDBAdapter,
-      mongo: MongoDBAdapter,
-      mysql: MySQLAdapter,
-      mariadb: MySQLAdapter,
-      planetscale: MySQLAdapter,
-      postgres: PostgreSQLAdapter,
-      postgresql: PostgreSQLAdapter,
-      pg: PostgreSQLAdapter,
-      cockroach: PostgreSQLAdapter,
-      cockroachdb: PostgreSQLAdapter,
-      neon: PostgreSQLAdapter,
-      firebase: FirebaseAdapter,
-      firestore: FirebaseAdapter,
-      dynamodb: DynamoDBAdapter,
-      redis: RedisAdapter,
-      redisdb: RedisAdapter,
-      supabase: SupabaseAdapter,
-      elasticsearch: ElasticsearchAdapter,
-      elastic: ElasticsearchAdapter,
-      opensearch: ElasticsearchAdapter,
-      cassandra: CassandraAdapter,
-      sqlite: SQLiteAdapter,
-      sqlite3: SQLiteAdapter,
-      libsql: LibSQLAdapter,
-      turso: LibSQLAdapter,
-      mssql: MSSQLAdapter,
-      sqlserver: MSSQLAdapter,
-      neo4j: Neo4jAdapter,
+      mongodb: adapters.mongodb,
+      mongo: adapters.mongodb,
+      mysql: adapters.mysql,
+      mariadb: adapters.mysql,
+      planetscale: adapters.mysql,
+      postgres: adapters.postgresql,
+      postgresql: adapters.postgresql,
+      pg: adapters.postgresql,
+      cockroach: adapters.postgresql,
+      cockroachdb: adapters.postgresql,
+      neon: adapters.postgresql,
+      firebase: adapters.firebase,
+      firestore: adapters.firebase,
+      dynamodb: adapters.dynamodb,
+      redis: adapters.redis,
+      redisdb: adapters.redis,
+      supabase: adapters.supabase,
+      elasticsearch: adapters.elasticsearch,
+      elastic: adapters.elasticsearch,
+      opensearch: adapters.elasticsearch,
+      cassandra: adapters.cassandra,
+      sqlite: adapters.sqlite,
+      sqlite3: adapters.sqlite,
+      libsql: adapters.libsql,
+      turso: adapters.libsql,
+      mssql: adapters.mssql,
+      sqlserver: adapters.mssql,
+      neo4j: adapters.neo4j,
       oracle: OptionalPackageAdapter.for('oracle', 'oracledb'),
       oracledb: OptionalPackageAdapter.for('oracledb', 'oracledb'),
       snowflake: OptionalPackageAdapter.for('snowflake', 'snowflake-sdk'),
@@ -66,7 +72,7 @@ class DatabaseManager {
 
     for (const dbConfig of databases) {
       const type = dbConfig.type.toLowerCase();
-      const AdapterClass = this.adapterMap[type];
+      const AdapterClass = this.resolveAdapter(type);
 
       if (!AdapterClass) {
         Logger.error(`Unknown database type: ${type}`);
@@ -97,6 +103,17 @@ class DatabaseManager {
     }
 
     Logger.success(`All databases initialized. Primary: ${this.getPrimaryDBType()}`);
+  }
+
+  resolveAdapter(type) {
+    const entry = this.adapterMap[type];
+    if (!entry) {
+      return null;
+    }
+    if (entry.prototype && typeof entry.prototype.connect === 'function') {
+      return entry;
+    }
+    return entry();
   }
 
   async query(model, operation, data = null, options = {}) {

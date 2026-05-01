@@ -1,51 +1,45 @@
-const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
 class SwaggerGenerator {
   static generate(appName = 'easy.js', version = '1.0.0', models = []) {
-    const options = {
-      definition: {
-        openapi: '3.0.0',
-        info: {
-          title: appName,
-          version: version,
-          description: `API Documentation for ${appName}`,
-          contact: {
-            name: 'API Support',
-            email: 'support@example.com'
-          }
-        },
-        servers: [
-          {
-            url: 'http://localhost:3000',
-            description: 'Development server'
-          },
-          {
-            url: 'https://api.example.com',
-            description: 'Production server'
-          }
-        ],
-        components: {
-          securitySchemes: {
-            bearerAuth: {
-              type: 'http',
-              scheme: 'bearer',
-              bearerFormat: 'JWT'
-            }
-          },
-          schemas: SwaggerGenerator.generateSchemas(models)
-        },
-        paths: SwaggerGenerator.generatePaths(models),
-        security: [
-          {
-            bearerAuth: []
-          }
-        ]
+    return {
+      openapi: '3.0.0',
+      info: {
+        title: appName,
+        version: version,
+        description: `API Documentation for ${appName}`,
+        contact: {
+          name: 'API Support',
+          email: 'support@example.com'
+        }
       },
-      apis: ['./routes/**/*.js', './middleware/**/*.js']
+      servers: [
+        {
+          url: 'http://localhost:3000',
+          description: 'Development server'
+        },
+        {
+          url: 'https://api.example.com',
+          description: 'Production server'
+        }
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT'
+          }
+        },
+        schemas: SwaggerGenerator.generateSchemas(models)
+      },
+      paths: SwaggerGenerator.generatePaths(models),
+      security: [
+        {
+          bearerAuth: []
+        }
+      ]
     };
-
-    return swaggerJsdoc(options);
   }
 
   static generateSchemas(models) {

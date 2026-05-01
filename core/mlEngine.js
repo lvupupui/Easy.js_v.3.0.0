@@ -1,6 +1,10 @@
-const tf = require('@tensorflow/tfjs');
 const fs = require('fs');
 const path = require('path');
+const optionalRequire = require('./optionalRequire');
+
+function getTensorflow() {
+  return optionalRequire('@tensorflow/tfjs', 'TensorFlow.js ML');
+}
 
 class MLEngine {
   constructor() {
@@ -16,6 +20,7 @@ class MLEngine {
 
   async loadModel(modelName, modelPath) {
     try {
+      const tf = getTensorflow();
       const model = await tf.loadLayersModel(`file://${modelPath}/model.json`);
       this.models.set(modelName, model);
       console.log(`[ML Engine] Model loaded: ${modelName}`);
@@ -27,6 +32,7 @@ class MLEngine {
   }
 
   async createSimpleModel(inputShape, outputShape) {
+    const tf = getTensorflow();
     const model = tf.sequential({
       layers: [
         tf.layers.dense({ units: 64, activation: 'relu', inputShape: [inputShape] }),
@@ -51,6 +57,7 @@ class MLEngine {
     if (!model) throw new Error(`Model ${modelName} not found`);
 
     try {
+      const tf = getTensorflow();
       const xs = tf.tensor2d(trainingData.features);
       const ys = tf.tensor2d(trainingData.labels);
 
@@ -77,6 +84,7 @@ class MLEngine {
     if (!model) throw new Error(`Model ${modelName} not found`);
 
     try {
+      const tf = getTensorflow();
       const input = tf.tensor2d([inputData]);
       const prediction = model.predict(input);
       const result = await prediction.data();
@@ -111,6 +119,7 @@ class MLEngine {
     if (!model) throw new Error(`Model ${modelName} not found`);
 
     try {
+      const tf = getTensorflow();
       const input = tf.tensor2d(inputDataArray);
       const predictions = model.predict(input);
       const results = await predictions.data();
@@ -152,6 +161,7 @@ class MLEngine {
     if (!model) throw new Error(`Model ${modelName} not found`);
 
     try {
+      const tf = getTensorflow();
       const xs = tf.tensor2d(testData.features);
       const ys = tf.tensor2d(testData.labels);
 

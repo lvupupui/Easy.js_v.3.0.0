@@ -17,6 +17,8 @@ Generated route operations such as `findAll`, `findById`, `updateById`, and `del
 
 ## Implemented Adapters
 
+Database drivers are optional peer dependencies. Install the driver for the database you select before starting the app, for example `npm install mongoose`, `npm install pg`, or `npm install @supabase/supabase-js`.
+
 Local/offline:
 
 - SQLite through `sql.js`: `USE SQLITE ./data/app.sqlite`
