@@ -11,6 +11,17 @@ function createApp({ db, redis } = {}) {
 }
 
 describe('health routes', () => {
+  it('returns a useful landing payload at the root path', async () => {
+    await request(createApp())
+      .get('/')
+      .expect(200)
+      .expect(res => {
+        expect(res.body.success).toBe(true);
+        expect(res.body.package).toBe('easybackend.js');
+        expect(res.body.endpoints.health).toBe('/health');
+      });
+  });
+
   it('returns health and runtime metrics', async () => {
     const app = createApp();
 

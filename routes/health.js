@@ -1,6 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const loggerWinston = require('../core/loggerWinston');
+const packageJson = require('../package.json');
+
+function landingPayload() {
+  return {
+    success: true,
+    name: 'easy.js',
+    package: 'easybackend.js',
+    version: packageJson.version,
+    message: 'easy.js backend is running',
+    endpoints: {
+      health: '/health',
+      ready: '/ready',
+      status: '/status',
+      metrics: '/metrics',
+      docs: '/api-docs'
+    }
+  };
+}
+
+router.get('/', (req, res) => {
+  res.status(200).json(landingPayload());
+});
 
 /**
  * GET /health

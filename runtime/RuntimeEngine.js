@@ -14,6 +14,7 @@ const ConnectionPool = require('../core/connectionPool');
 const SecurityLayer = require('../core/security');
 const MonitoringSystem = require('../core/monitoring');
 const EnterpriseAuth = require('../core/enterpriseAuth');
+const packageJson = require('../package.json');
 
 class RuntimeEngine {
   constructor() {
@@ -169,6 +170,26 @@ class RuntimeEngine {
       });
 
       next();
+    });
+
+    this.app.get('/', (req, res) => {
+      res.json({
+        success: true,
+        name: 'easy.js',
+        package: 'easybackend.js',
+        version: packageJson.version,
+        message: 'easy.js backend is running',
+        endpoints: {
+          health: '/health',
+          runtimeHealth: '/_health',
+          metrics: '/_metrics',
+          prometheus: '/_prometheus'
+        },
+        routes: (this.config.routes || []).map(route => ({
+          method: route.method.toUpperCase(),
+          path: route.path
+        }))
+      });
     });
 
     // Health check endpoint
