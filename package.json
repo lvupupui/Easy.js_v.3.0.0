@@ -1,6 +1,6 @@
 {
   "name": "easybackend.js",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A developer-friendly backend DSL and framework for Node.js and Express.",
   "main": "index.js",
   "icon": "public/easyjs-logo-mark.svg",
@@ -12,6 +12,7 @@
     "url": "https://github.com/Avi-Ranjan-Prasad/easy.js/issues"
   },
   "homepage": "https://github.com/Avi-Ranjan-Prasad/easy.js#readme",
+  "readmeFilename": "README.md",
   "files": [
     "adapters/",
     "admin/",
@@ -114,6 +115,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --detectOpenHandles",
+    "prepack": "node scripts/verify-package-readme.js",
     "test:integration": "jest tests/integration",
     "test:live:adapters": "jest tests/integration/liveAdapters.test.js --runInBand",
     "test:unit": "jest tests/unit",

@@ -15,6 +15,8 @@ function assertFile(relativePath) {
 }
 
 async function main() {
+  require('./verify-package-readme');
+
   assertFile('Dockerfile');
   assertFile('docker-compose.yml');
   assertFile('.env.example');
