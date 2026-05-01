@@ -8,6 +8,35 @@ const Parser = require('../parser/Parser');
 const Compiler = require('../compiler/Compiler');
 const { TypeChecker, Formatter, Linter, Repl, Playground } = require('../language');
 
+const PROVIDER_PACKAGES = {
+  mongodb: { label: 'MongoDB', packages: ['mongoose'], connection: 'mongodb://localhost:27017/app' },
+  mongo: { label: 'MongoDB', packages: ['mongoose'], connection: 'mongodb://localhost:27017/app' },
+  postgres: { label: 'PostgreSQL', packages: ['pg'], connection: 'postgres://postgres:postgres@localhost:5432/app' },
+  postgresql: { label: 'PostgreSQL', packages: ['pg'], connection: 'postgres://postgres:postgres@localhost:5432/app' },
+  pg: { label: 'PostgreSQL', packages: ['pg'], connection: 'postgres://postgres:postgres@localhost:5432/app' },
+  mysql: { label: 'MySQL', packages: ['mysql2'], connection: 'mysql://root:password@localhost:3306/app' },
+  mariadb: { label: 'MariaDB', packages: ['mysql2'], connection: 'mysql://root:password@localhost:3306/app' },
+  sqlite: { label: 'SQLite', packages: ['sql.js'], connection: './data/app.sqlite' },
+  redis: { label: 'Redis', packages: ['redis'], connection: 'redis://localhost:6379' },
+  supabase: { label: 'Supabase', packages: ['@supabase/supabase-js'], connection: 'SUPABASE_URL' },
+  firebase: { label: 'Firebase', packages: ['firebase-admin'], connection: 'FIREBASE_PROJECT_ID' },
+  firestore: { label: 'Firebase', packages: ['firebase-admin'], connection: 'FIREBASE_PROJECT_ID' },
+  dynamodb: { label: 'DynamoDB', packages: ['@aws-sdk/client-dynamodb', '@aws-sdk/lib-dynamodb'], connection: 'AWS_REGION' },
+  elasticsearch: { label: 'Elasticsearch', packages: ['@elastic/elasticsearch'], connection: 'http://localhost:9200' },
+  opensearch: { label: 'OpenSearch', packages: ['@elastic/elasticsearch'], connection: 'http://localhost:9200' },
+  cassandra: { label: 'Cassandra', packages: ['cassandra-driver'], connection: '127.0.0.1' },
+  neo4j: { label: 'Neo4j', packages: ['neo4j-driver'], connection: 'neo4j://localhost:7687' },
+  mssql: { label: 'SQL Server', packages: ['mssql'], connection: 'sqlserver://user:password@localhost:1433/app' },
+  libsql: { label: 'libSQL', packages: ['@libsql/client'], connection: 'file:local.db' },
+  turso: { label: 'Turso', packages: ['@libsql/client'], connection: 'libsql://database.turso.io' }
+};
+
+const UI_PRESETS = {
+  plain: { label: 'Plain HTML', packages: [] },
+  bootstrap: { label: 'Bootstrap', packages: ['bootstrap'] },
+  tailwind: { label: 'Tailwind CSS', packages: ['tailwindcss', 'postcss', 'autoprefixer'] }
+};
+
 class CLI {
   constructor(argv = process.argv) {
     this.command = argv[2];
@@ -85,6 +114,7 @@ class CLI {
     }
 
     Logger.info(`Creating secure backend: ${projectName}`);
+    const uiPreset = this.getOption('ui', 'plain');
 
     for (const dir of [
       'src',
@@ -92,6 +122,7 @@ class CLI {
       'config',
       'tests/unit',
       'tests/integration',
+      'template',
       'migrations',
       'seeds',
       'docs',
@@ -100,7 +131,7 @@ class CLI {
       fs.mkdirSync(path.join(projectPath, dir), { recursive: true });
     }
 
-    this.writeProjectFiles(projectPath, projectName);
+    this.writeProjectFiles(projectPath, projectName, uiPreset);
 
     Logger.success('Project created successfully');
     Logger.info(`Next steps:`);
@@ -110,7 +141,7 @@ class CLI {
     Logger.info(`  npm run dev`);
   }
 
-  writeProjectFiles(projectPath, projectName) {
+  writeProjectFiles(projectPath, projectName, uiPreset = 'plain') {
     const files = {
       'src/app.easy': this.templates.appEasy(projectName),
       'src/models.easy': this.templates.modelsEasy(),
@@ -119,6 +150,9 @@ class CLI {
       'src/jobs.easy': this.templates.jobsEasy(),
       'config/easy.config.js': this.templates.easyConfig(),
       'tests/integration/health.test.js': this.templates.healthTest(),
+      'template/index.html': this.templates.templateIndex(projectName, uiPreset),
+      'template/styles.css': this.templates.templateStyles(uiPreset),
+      'template/app.js': this.templates.templateApp(),
       'migrations/001_create_users_table.js': this.templates.userMigration(),
       'seeds/001_admin_user.js': this.templates.adminSeed(),
       'docs/API.md': this.templates.apiDocs(projectName),
@@ -128,7 +162,11 @@ class CLI {
       'Dockerfile': this.templates.dockerfile(),
       'docker-compose.yml': this.templates.dockerCompose(projectName),
       '.github/workflows/ci.yml': this.templates.ciWorkflow(),
-      'package.json': JSON.stringify(this.templates.packageJson(projectName), null, 2),
+      ...(uiPreset === 'tailwind' ? {
+        'template/input.css': this.templates.tailwindInput(),
+        'tailwind.config.js': this.templates.tailwindConfig()
+      } : {}),
+      'package.json': JSON.stringify(this.templates.packageJson(projectName, uiPreset), null, 2),
       'README.md': this.templates.readme(projectName)
     };
 
@@ -143,7 +181,7 @@ class CLI {
 
     if (!feature) {
       Logger.error('Feature name is required');
-      Logger.info('Usage: easyjs add <model|crud|job> <name>');
+      Logger.info('Usage: easyjs add <model|route|crud|auth|database|job> <name>');
       process.exit(1);
     }
 
@@ -159,6 +197,38 @@ class CLI {
       const routeName = name.toLowerCase();
       this.appendFile('src/routes.easy', `\nGET /${routeName} FROM ${routeName}\nGET /${routeName}/:id FROM ${routeName}\nPOST /${routeName} FROM ${routeName}\nPUT /${routeName}/:id FROM ${routeName}\nDELETE /${routeName}/:id FROM ${routeName}\nPROTECT /${routeName}\n`);
       Logger.success(`CRUD routes added for: ${name}`);
+      return;
+    }
+
+    if (feature === 'route') {
+      if (!name) return this.missingName('route');
+      const routeName = name.toLowerCase().replace(/^\//, '');
+      this.appendFile('src/routes.easy', `\nGET /${routeName} FROM ${routeName}\nPOST /${routeName} FROM ${routeName}\n`);
+      Logger.success(`Routes added for: ${routeName}`);
+      return;
+    }
+
+    if (feature === 'auth') {
+      const strategy = (name || 'jwt').toLowerCase();
+      if (strategy !== 'jwt') {
+        Logger.error(`Unsupported auth strategy: ${strategy}`);
+        Logger.info('Usage: easyjs add auth jwt');
+        process.exit(1);
+      }
+      this.appendFile('src/auth.easy', `\nAUTH users BY jwt\nPROTECT /users\n`);
+      Logger.success('JWT auth added for users');
+      return;
+    }
+
+    if (feature === 'database') {
+      if (!name) return this.missingName('database');
+      this.addDatabase(name);
+      return;
+    }
+
+    if (feature === 'ui') {
+      if (!name) return this.missingName('ui');
+      this.addUiPreset(name);
       return;
     }
 
@@ -186,7 +256,64 @@ class CLI {
     fs.appendFileSync(filepath, content);
   }
 
+  addDatabase(name) {
+    const provider = this.normalizeProvider(name);
+    const info = PROVIDER_PACKAGES[provider];
+    if (!info) {
+      Logger.error(`Unsupported database provider: ${name}`);
+      Logger.info(`Supported: ${Object.keys(PROVIDER_PACKAGES).sort().join(', ')}`);
+      process.exit(1);
+    }
+
+    const file = this.defaultEasyFile();
+    const filepath = path.resolve(process.cwd(), file);
+    const source = fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf8') : '';
+    const directive = `USE ${provider.toUpperCase()} ${info.connection}`;
+    const nextSource = source.match(/^\s*USE\s+\S+\s+.+$/im)
+      ? source.replace(/^\s*USE\s+\S+\s+.+$/im, directive)
+      : `${source.trimEnd()}\n\n${directive}\n`;
+
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, nextSource);
+    const added = this.ensureProjectDependencies(info.packages);
+
+    Logger.success(`${info.label} configured in ${file}`);
+    if (added.length) {
+      Logger.info(`Added dependencies to package.json: ${added.join(', ')}`);
+      Logger.info(`Run npm install`);
+    }
+  }
+
+  addUiPreset(name) {
+    const preset = this.normalizeProvider(name);
+    const info = UI_PRESETS[preset];
+    if (!info) {
+      Logger.error(`Unsupported UI preset: ${name}`);
+      Logger.info(`Supported: ${Object.keys(UI_PRESETS).join(', ')}`);
+      process.exit(1);
+    }
+
+    fs.mkdirSync(path.join(process.cwd(), 'template'), { recursive: true });
+    fs.writeFileSync(path.join(process.cwd(), 'template', 'index.html'), this.templates.templateIndex(this.projectNameFromPackage(), preset));
+    fs.writeFileSync(path.join(process.cwd(), 'template', 'styles.css'), this.templates.templateStyles(preset));
+    fs.writeFileSync(path.join(process.cwd(), 'template', 'app.js'), this.templates.templateApp());
+    if (preset === 'tailwind') {
+      fs.writeFileSync(path.join(process.cwd(), 'template', 'input.css'), this.templates.tailwindInput());
+      fs.writeFileSync(path.join(process.cwd(), 'tailwind.config.js'), this.templates.tailwindConfig());
+      this.ensurePackageScripts({ 'ui:build': 'tailwindcss -i ./template/input.css -o ./template/styles.css' });
+    }
+
+    const added = this.ensureProjectDependencies(info.packages);
+    Logger.success(`${info.label} UI template installed`);
+    if (added.length) {
+      Logger.info(`Added dependencies to package.json: ${added.join(', ')}`);
+      Logger.info('Run npm install');
+      if (preset === 'tailwind') Logger.info('Then run npm run ui:build');
+    }
+  }
+
   doctor() {
+    const providerChecks = this.checkProviderDependencies();
     const checks = [
       this.checkFile('package.json', 'Project package'),
       this.checkFile('src/app.easy', 'Main easy.js app'),
@@ -198,11 +325,19 @@ class CLI {
       this.checkEnv('DATABASE_URL', 'Database URL', false)
     ];
 
-    const failed = checks.filter(check => !check.ok);
+    const failed = checks.filter(check => !check.ok).concat(providerChecks.filter(check => !check.ok));
 
     checks.forEach(check => {
       const label = check.ok ? 'OK' : (check.required ? 'MISSING' : 'WARN');
       Logger.info(`${label}: ${check.name}`);
+    });
+
+    providerChecks.forEach(check => {
+      if (check.ok) {
+        Logger.info(`OK: ${check.name}`);
+      } else {
+        Logger.error(check.message);
+      }
     });
 
     if (failed.some(check => check.required)) {
@@ -273,16 +408,132 @@ class CLI {
     return { name, required, ok: env.includes(`${key}=`) };
   }
 
+  checkProviderDependencies(file = this.defaultEasyFile()) {
+    const providers = this.detectProviders(file);
+    const checks = [];
+
+    for (const provider of providers) {
+      const info = PROVIDER_PACKAGES[provider];
+      if (!info) continue;
+      for (const pkg of info.packages) {
+        const installed = this.isPackageInstalled(pkg);
+        checks.push({
+          name: `${info.label} driver ${pkg}`,
+          required: true,
+          ok: installed,
+          message: `You use ${info.label} but ${pkg} is missing. Run npm install ${pkg}.`
+        });
+      }
+    }
+
+    return checks;
+  }
+
+  detectProviders(file = this.defaultEasyFile()) {
+    try {
+      const source = this.readEasySource(file);
+      const providers = new Set();
+      const pattern = /^\s*USE\s+([A-Z0-9_]+)\b/gim;
+      let match;
+      while ((match = pattern.exec(source))) {
+        providers.add(this.normalizeProvider(match[1]));
+      }
+      return Array.from(providers);
+    } catch {
+      return [];
+    }
+  }
+
+  normalizeProvider(provider) {
+    return String(provider || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  readProjectDependencies() {
+    const packagePath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(packagePath)) return {};
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+      return {
+        ...(pkg.dependencies || {}),
+        ...(pkg.devDependencies || {}),
+        ...(pkg.optionalDependencies || {}),
+        ...(pkg.peerDependencies || {})
+      };
+    } catch {
+      return {};
+    }
+  }
+
+  ensureProjectDependencies(packages) {
+    const packagePath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(packagePath)) return [];
+    const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    pkg.dependencies = pkg.dependencies || {};
+    const added = [];
+    for (const packageName of packages) {
+      if (!pkg.dependencies[packageName]) {
+        pkg.dependencies[packageName] = this.packageVersionFor(packageName);
+        added.push(packageName);
+      }
+    }
+    if (added.length) {
+      fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
+    }
+    return added;
+  }
+
+  ensurePackageScripts(scripts) {
+    const packagePath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(packagePath)) return;
+    const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    pkg.scripts = { ...(pkg.scripts || {}), ...scripts };
+    fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
+  }
+
+  projectNameFromPackage() {
+    const packagePath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(packagePath)) return 'easy-ui';
+    try {
+      return JSON.parse(fs.readFileSync(packagePath, 'utf8')).name || 'easy-ui';
+    } catch {
+      return 'easy-ui';
+    }
+  }
+
+  packageVersionFor(packageName) {
+    const rootPackage = require('../package.json');
+    return rootPackage.peerDependencies?.[packageName] || 'latest';
+  }
+
+  isPackageInstalled(packageName) {
+    try {
+      require.resolve(packageName, { paths: [process.cwd()] });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   startServer() {
     const filePath = this.args[0] || './src/app.easy';
+    this.ensureRuntimeReady(filePath);
     Logger.info(`Starting server with ${filePath}...`);
     this.runEasyJS(filePath);
   }
 
   devServer() {
     const filePath = this.args[0] || './src/app.easy';
+    this.ensureRuntimeReady(filePath);
     Logger.info(`Starting development server with ${filePath}...`);
     this.runWithWatcher(filePath);
+  }
+
+  ensureRuntimeReady(filePath) {
+    const missing = this.checkProviderDependencies(filePath).filter(check => !check.ok);
+    if (missing.length) {
+      missing.forEach(check => Logger.error(check.message));
+      process.exit(1);
+    }
   }
 
   build() {
@@ -334,7 +585,11 @@ Commands:
   repl                 Open the easy.js REPL
   playground [file]    Analyze source and print language summary
   add model <name>     Add a model block
+  add route <name>     Add simple GET/POST routes
   add crud <name>      Add protected CRUD routes
+  add auth jwt         Add JWT auth declarations
+  add database <name>  Configure database and package dependency
+  add ui <preset>      Add UI preset: plain, bootstrap, tailwind
   add job <name>       Add a scheduled job block
   build                Build for production
   migration <command>  Migration commands: latest, rollback, make <name>
@@ -343,7 +598,9 @@ Commands:
 Examples:
   easyjs create my-api
   easyjs add model Post
-  easyjs add crud posts
+  easyjs add database postgres
+  easyjs add ui bootstrap
+  easyjs add route posts
   easyjs doctor
 `);
   }
@@ -381,6 +638,16 @@ Examples:
         process.exit(1);
       }
     });
+  }
+
+  getOption(name, fallback = null) {
+    const prefix = `--${name}=`;
+    const exact = `--${name}`;
+    const inline = this.args.find(arg => arg.startsWith(prefix));
+    if (inline) return inline.slice(prefix.length);
+    const index = this.args.indexOf(exact);
+    if (index !== -1 && this.args[index + 1]) return this.args[index + 1];
+    return fallback;
   }
 
   templates = {
@@ -529,6 +796,311 @@ Useful endpoints:
 - GET /docs
 - GET /posts
 - POST /posts
+
+Open http://localhost:3000/ for the starter UI.
+`,
+
+    templateIndex: (projectName, uiPreset = 'plain') => {
+      const bootstrap = uiPreset === 'bootstrap';
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${projectName} - easy.js</title>
+  ${bootstrap ? '<link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">' : ''}
+  <link rel="stylesheet" href="/template/styles.css">
+</head>
+<body>
+  <main class="shell ${bootstrap ? 'container py-5' : ''}">
+    <header class="hero ${bootstrap ? 'border-bottom pb-4 mb-4' : ''}">
+      <div class="mark ${bootstrap ? 'shadow-sm' : ''}" aria-hidden="true">E</div>
+      <div>
+        <p class="eyebrow">easy.js template</p>
+        <h1>${projectName}</h1>
+        <p class="lede">Edit files in the <code>template</code> folder to design this UI. The buttons below call your backend routes directly.</p>
+      </div>
+    </header>
+
+    <section class="panel ${bootstrap ? 'card card-body shadow-sm' : ''}">
+      <div class="panel-head ${bootstrap ? 'd-flex justify-content-between align-items-center' : ''}">
+        <h2>API Explorer</h2>
+        <button id="refresh" class="${bootstrap ? 'btn btn-outline-success btn-sm' : ''}">Refresh</button>
+      </div>
+      <div id="route-list" class="actions">
+        <button class="${bootstrap ? 'btn btn-success' : ''}" data-method="GET" data-endpoint="/health">GET /health</button>
+      </div>
+      <label class="body-label" for="request-body">Request body</label>
+      <textarea id="request-body" rows="7" spellcheck="false">{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com"
+}</textarea>
+      <div class="toolbar">
+        <button id="send" class="${bootstrap ? 'btn btn-success' : ''}">Send selected route</button>
+        <button id="copy-curl" class="${bootstrap ? 'btn btn-outline-success' : ''}">Copy curl</button>
+      </div>
+      <pre id="output">Click an endpoint to see the backend response.</pre>
+    </section>
+  </main>
+  <script src="/template/app.js"></script>
+  ${bootstrap ? '<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>' : ''}
+</body>
+</html>
+`;
+    },
+
+    templateStyles: (uiPreset = 'plain') => `${uiPreset === 'tailwind' ? '/* Generated from template/input.css. Run npm run ui:build after editing Tailwind classes. */\n' : ''}:root {
+  --bg: #f7faf6;
+  --panel: #ffffff;
+  --ink: #172316;
+  --muted: #5d6b5a;
+  --brand: #4d963f;
+  --line: #dce7d7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.shell {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 22px;
+  align-items: center;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mark {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--brand);
+  color: white;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--brand);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: .8rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.lede {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.panel {
+  margin-top: 28px;
+  padding: 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+h2 { margin: 0; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfdf9;
+  color: var(--ink);
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--brand);
+  background: #f2faef;
+}
+
+.body-label {
+  display: block;
+  margin: 10px 0 8px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdf9;
+  color: var(--ink);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+button.active {
+  border-color: var(--brand);
+  background: #e8f7e2;
+}
+
+pre {
+  min-height: 220px;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #102015;
+  color: #dff3d8;
+}
+
+@media (max-width: 680px) {
+  .hero { grid-template-columns: 1fr; }
+}
+`,
+
+    tailwindInput: () => `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#f7faf6] text-[#172316];
+  }
+}
+`,
+
+    tailwindConfig: () => `module.exports = {
+  content: ['./template/**/*.{html,js}'],
+  theme: {
+    extend: {}
+  },
+  plugins: []
+};
+`,
+
+    templateApp: () => `const output = document.querySelector('#output');
+const routeList = document.querySelector('#route-list');
+const bodyInput = document.querySelector('#request-body');
+const send = document.querySelector('#send');
+const copyCurl = document.querySelector('#copy-curl');
+const refresh = document.querySelector('#refresh');
+const usesBootstrap = Boolean(document.querySelector('link[href*="/vendor/bootstrap/"]'));
+
+let selectedRoute = { method: 'GET', path: '/health' };
+
+async function loadRoutes() {
+  try {
+    const response = await fetch('/?format=json', { headers: { Accept: 'application/json' } });
+    const data = await response.json();
+    const routes = [{ method: 'GET', path: '/health' }, ...(data.routes || [])];
+    routeList.innerHTML = '';
+    routes.forEach(route => {
+      const button = document.createElement('button');
+      button.textContent = \`\${route.method} \${route.path}\`;
+      if (usesBootstrap) button.className = 'btn btn-success';
+      button.dataset.method = route.method;
+      button.dataset.endpoint = route.path.replace(/:[^/]+/g, '1');
+      button.addEventListener('click', () => selectRoute(route.method, button.dataset.endpoint, button));
+      routeList.appendChild(button);
+    });
+    const first = routeList.querySelector('button');
+    if (first) first.click();
+  } catch (error) {
+    output.textContent = \`Could not load route list: \${error.message}\`;
+  }
+}
+
+function selectRoute(method, endpoint, button) {
+  selectedRoute = { method, path: endpoint };
+  document.querySelectorAll('#route-list button').forEach(item => item.classList.remove('active'));
+  button.classList.add('active');
+  output.textContent = \`Selected \${method} \${endpoint}\`;
+}
+
+async function callApi(route = selectedRoute) {
+  output.textContent = \`Loading \${route.method} \${route.path}...\`;
+  const options = { method: route.method, headers: { Accept: 'application/json' } };
+  if (!['GET', 'HEAD'].includes(route.method)) {
+    options.headers['Content-Type'] = 'application/json';
+    options.body = bodyInput.value;
+  }
+  try {
+    const response = await fetch(route.path, options);
+    const text = await response.text();
+    try {
+      output.textContent = JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      output.textContent = text;
+    }
+  } catch (error) {
+    output.textContent = error.message;
+  }
+}
+
+function buildCurl(route = selectedRoute) {
+  const parts = [\`curl -X \${route.method} "\${window.location.origin}\${route.path}"\`, '-H "Accept: application/json"'];
+  if (!['GET', 'HEAD'].includes(route.method)) {
+    parts.push('-H "Content-Type: application/json"');
+    parts.push(\`-d '\${bodyInput.value.replace(/'/g, "'\\\\''")}'\`);
+  }
+  return parts.join(' \\\\\\n  ');
+}
+
+send.addEventListener('click', () => callApi());
+copyCurl.addEventListener('click', async () => {
+  const curl = buildCurl();
+  try {
+    await navigator.clipboard.writeText(curl);
+    output.textContent = \`Copied curl command:\\n\\n\${curl}\`;
+  } catch {
+    output.textContent = curl;
+  }
+});
+refresh.addEventListener('click', loadRoutes);
+loadRoutes();
 `,
 
     env: (projectName) => `NODE_ENV=development
@@ -624,7 +1196,16 @@ jobs:
       - run: npm test
 `,
 
-    packageJson: (projectName) => ({
+    packageJson: (projectName, uiPreset = 'plain') => {
+      const ui = UI_PRESETS[uiPreset] || UI_PRESETS.plain;
+      const dependencies = {
+        'easybackend.js': '^3.3.0',
+        mongoose: '^7.5.0'
+      };
+      for (const packageName of ui.packages) {
+        dependencies[packageName] = this.packageVersionFor(packageName);
+      }
+      return ({
       name: projectName,
       version: '1.0.0',
       private: true,
@@ -640,20 +1221,18 @@ jobs:
         'migrate:rollback': 'knex migrate:rollback',
         'seed:run': 'knex seed:run'
       },
-      dependencies: {
-        'easybackend.js': '^3.0.10',
-        mongoose: '^7.5.0'
-      },
+      dependencies,
       devDependencies: {
         jest: '^29.7.0',
         supertest: '^6.3.3',
         knex: '^2.5.1'
       }
-    }),
+    });
+    },
 
     readme: (projectName) => `# ${projectName}
 
-Secure backend in easy.js.
+A secure backend built with easy.js.
 
 ## Start
 
@@ -663,8 +1242,12 @@ npm run doctor
 npm run dev
 \`\`\`
 
+Open http://localhost:3000/ for the starter UI.
+
 ## What you get
 
+- A working root UI with the easy.js logo
+- Editable frontend files in the template folder
 - Secure defaults
 - JWT auth with refresh-token support
 - Validation
@@ -679,9 +1262,16 @@ npm run dev
 
 \`\`\`bash
 easyjs add model Product
+easyjs add route products
+easyjs add database postgres
+easyjs add auth jwt
 easyjs add crud products
 easyjs add job dailyReport
 \`\`\`
+
+## Provider Packages
+
+easy.js installs only the core framework by default. When you select a provider, \`easyjs add database\` adds the matching package to \`package.json\`, and \`easyjs doctor\` tells you exactly what to install if anything is missing.
 `
   };
 }

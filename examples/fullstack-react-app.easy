@@ -1,0 +1,22 @@
+START SERVER 3000
+USE MONGODB mongodb://localhost:27017/easy_fullstack_react
+
+FRONTEND react
+CSS tailwind
+
+MODEL tasks {
+  title: string
+  notes: string
+  completed: boolean
+  dueDate: date
+}
+
+GET /tasks FROM tasks
+GET /tasks/:id FROM tasks
+POST /tasks FROM tasks
+PUT /tasks/:id FROM tasks
+DELETE /tasks/:id FROM tasks
+
+VALIDATE tasks {
+  title: required:min=2
+}

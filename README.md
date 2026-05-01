@@ -92,6 +92,19 @@ npm install pg
 npm install @supabase/supabase-js
 ```
 
+`easyjs doctor` reads your `.easy` files and tells you the exact package to install when a selected provider is missing.
+
+New projects also include an editable `template/` folder. Put plain HTML, CSS, and JavaScript there and easy.js serves it at `/`, so you can design a small UI without setting up a separate frontend build.
+
+You can choose a UI preset:
+
+```bash
+npx easybackend.js create my-api --ui bootstrap
+npx easybackend.js create my-api --ui tailwind
+easyjs add ui bootstrap
+easyjs add ui tailwind
+```
+
 ### Create a Project
 
 ```bash
@@ -437,11 +450,41 @@ easyjs start app.easy
 easyjs dev app.easy
 ```
 
+### Add Features
+
+```bash
+easyjs add model Product
+easyjs add route products
+easyjs add crud products
+easyjs add auth jwt
+easyjs add database postgres
+```
+
+### Check Provider Packages
+
+```bash
+easyjs doctor
+```
+
+If your app says `USE SUPABASE` and the SDK is missing, doctor prints:
+
+```text
+You use Supabase but @supabase/supabase-js is missing. Run npm install @supabase/supabase-js.
+```
+
 ### Build for Production
 
 ```bash
 easyjs build
 ```
+
+### Check Before Publishing
+
+```bash
+npm run release:check
+```
+
+This runs the test suite, production smoke validation, package dry-run, real pack, and a temp consumer install from the generated tarball.
 
 ### Show Version
 

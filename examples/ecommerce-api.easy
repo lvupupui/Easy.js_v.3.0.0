@@ -1,0 +1,32 @@
+START SERVER 3000
+USE POSTGRES postgres://postgres:postgres@localhost:5432/easy_shop
+
+MODEL products {
+  name: string
+  sku: string
+  price: number
+  inventory: number
+  active: boolean
+}
+
+MODEL orders {
+  userId: string
+  total: number
+  status: string
+  createdAt: date
+}
+
+GET /products FROM products
+GET /products/:id FROM products
+POST /products FROM products
+PUT /products/:id FROM products
+DELETE /products/:id FROM products
+
+GET /orders FROM orders
+POST /orders FROM orders
+PROTECT /orders
+
+VALIDATE products {
+  name: required
+  price: required:numeric:min=0
+}

@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const helmet = require('helmet');
 const cors = require('cors');
 const compression = require('compression');
@@ -73,6 +75,7 @@ class RuntimeEngine {
 
     // Setup basic middleware
     this.setupBasicMiddleware();
+    this.setupTemplateUI();
 
     // Initialize database with connection pooling
     if (config.databases.length > 0) {
@@ -152,6 +155,27 @@ class RuntimeEngine {
     this.app.use((req, res, next) => {
       Logger.info(`${req.method} ${req.path}`);
       next();
+    });
+  }
+
+  setupTemplateUI() {
+    const templateDir = path.resolve(process.cwd(), 'template');
+    const indexPath = path.join(templateDir, 'index.html');
+    if (!fs.existsSync(indexPath)) {
+      return;
+    }
+
+    const bootstrapDist = path.resolve(process.cwd(), 'node_modules', 'bootstrap', 'dist');
+    if (fs.existsSync(bootstrapDist)) {
+      this.app.use('/vendor/bootstrap', express.static(bootstrapDist));
+    }
+
+    this.app.use('/template', express.static(templateDir));
+    this.app.get('/', (req, res, next) => {
+      if (wantsJson(req)) {
+        return next();
+      }
+      return res.sendFile(indexPath);
     });
   }
 

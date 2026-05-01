@@ -1,0 +1,27 @@
+START SERVER 3000
+USE SQLITE ./data/chatbot.sqlite
+
+MODEL conversations {
+  userId: string
+  title: string
+  model: string
+  createdAt: date
+}
+
+MODEL messages {
+  conversationId: string
+  role: string
+  content: string
+  createdAt: date
+}
+
+GET /conversations FROM conversations
+POST /conversations FROM conversations
+GET /messages FROM messages
+POST /messages FROM messages
+
+VALIDATE messages {
+  conversationId: required
+  role: required
+  content: required
+}
