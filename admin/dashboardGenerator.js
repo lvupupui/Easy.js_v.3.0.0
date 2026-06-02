@@ -1,6 +1,18 @@
 const express = require('express');
 const loggerWinston = require('../core/loggerWinston');
 
+/**
+ * Escape HTML special characters to prevent XSS injection.
+ * @param {*} value - The value to escape (converted to string).
+ * @returns {string} HTML-escaped string.
+ */
+function escapeHtml(value) {
+  if (value == null) return '';
+  const str = String(value);
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+  return str.replace(/[&<>"']/g, ch => map[ch]);
+}
+
 class AdminDashboardGenerator {
   constructor(db, models) {
     this.db = db;
@@ -241,12 +253,13 @@ class AdminDashboardGenerator {
   }
 
   generateListHTML(model) {
+    const escapedModel = escapeHtml(model);
     return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Manage ${model}</title>
+  <title>Manage ${escapedModel}</title>
   <style>${this.getDashboardCSS()}</style>
 </head>
 <body>
@@ -257,13 +270,21 @@ class AdminDashboardGenerator {
     </table>
   </div>
   <script>
-    const model = '${model}';
+    const model = '${escapedModel}';
     fetch(\`/api/models\`).then(r => r.json()).then(data => {
       const m = data.find(x => x.name === model);
       if (m) {
         const headers = ['ID', ...Object.keys(m.fields)];
-        document.querySelector('thead tr').innerHTML = 
-          headers.map(h => '<th>' + h + '</th>').join('') + '<th>Actions</th>';
+        const tr = document.querySelector('thead tr');
+        tr.innerHTML = '';
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          tr.appendChild(th);
+        });
+        const actionTh = document.createElement('th');
+        actionTh.textContent = 'Actions';
+        tr.appendChild(actionTh);
       }
     });
   </script>
@@ -273,12 +294,14 @@ class AdminDashboardGenerator {
   }
 
   generateDetailHTML(model, id) {
+    const escapedModel = escapeHtml(model);
+    const escapedId = escapeHtml(id);
     return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Edit ${model}</title>
+  <title>Edit ${escapedModel}</title>
   <style>${this.getDashboardCSS()}</style>
 </head>
 <body>
@@ -286,13 +309,22 @@ class AdminDashboardGenerator {
     <form id="record-form"></form>
   </div>
   <script>
-    const model = '${model}';
-    const id = '${id}';
+    const model = '${escapedModel}';
+    const id = '${escapedId}';
     fetch(\`/api/\${model}/\${id}\`).then(r => r.json()).then(record => {
-      document.getElementById('record-form').innerHTML = 
-        Object.entries(record).map(([k, v]) => 
-          '<div><label>' + k + '</label><input name="' + k + '" value="' + v + '"></div>'
-        ).join('');
+      const form = document.getElementById('record-form');
+      form.innerHTML = '';
+      Object.entries(record).forEach(([k, v]) => {
+        const div = document.createElement('div');
+        const label = document.createElement('label');
+        label.textContent = k;
+        div.appendChild(label);
+        const input = document.createElement('input');
+        input.name = k;
+        input.value = v;
+        div.appendChild(input);
+        form.appendChild(div);
+      });
     });
   </script>
 </body>
@@ -330,18 +362,32 @@ class AdminDashboardGenerator {
     return `
       async function loadStats() {
         const stats = await fetch('/admin/api/stats').then(r => r.json());
-        const html = stats.models.map(m => 
-          '<div class="stat-card"><h3>' + m.name + '</h3><div class="value">' + m.count + '</div></div>'
-        ).join('');
-        document.getElementById('stats').innerHTML = html;
+        const container = document.getElementById('stats');
+        container.innerHTML = '';
+        stats.models.forEach(m => {
+          const card = document.createElement('div');
+          card.className = 'stat-card';
+          const title = document.createElement('h3');
+          title.textContent = m.name;
+          card.appendChild(title);
+          const value = document.createElement('div');
+          value.className = 'value';
+          value.textContent = m.count;
+          card.appendChild(value);
+          container.appendChild(card);
+        });
       }
 
       async function loadModels() {
         const models = await fetch('/admin/api/models').then(r => r.json());
         const nav = document.getElementById('models-nav');
-        nav.innerHTML = models.map(m => 
-          '<a href="/admin/' + m.name.toLowerCase() + '">' + m.name + '</a>'
-        ).join('');
+        nav.innerHTML = '';
+        models.forEach(m => {
+          const a = document.createElement('a');
+          a.href = '/admin/' + m.name.toLowerCase();
+          a.textContent = m.name;
+          nav.appendChild(a);
+        });
       }
 
       loadStats();
@@ -350,4 +396,4 @@ class AdminDashboardGenerator {
   }
 }
 
-module.exports = AdminDashboardGenerator;
+module.exports = { AdminDashboardGenerator, escapeHtml };
